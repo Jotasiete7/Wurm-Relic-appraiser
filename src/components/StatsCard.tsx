@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { WurmStats } from '../hooks/useStats';
-import { BarChart3, RotateCcw, FileText, Image, Clipboard, TrendingUp, Zap, AlertTriangle } from 'lucide-react';
+import { BarChart3, RotateCcw, FileText, Image, TrendingUp, Zap, AlertTriangle } from 'lucide-react';
 
 interface StatsCardProps {
   stats: WurmStats;
@@ -83,7 +83,7 @@ export function StatsCard({ stats, onReset, t }: StatsCardProps) {
       </div>
 
       {/* Stats Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
         
         <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '1rem', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ background: 'rgba(212,180,131,0.1)', color: 'var(--accent-primary)', padding: '8px', borderRadius: '6px' }}>
@@ -122,16 +122,6 @@ export function StatsCard({ stats, onReset, t }: StatsCardProps) {
           <div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('statsExamineLogs')}</div>
             <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>{stats.examineLogsProcessed}</div>
-          </div>
-        </div>
-
-        <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '1rem', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ background: 'rgba(249, 115, 22, 0.1)', color: '#f97316', padding: '8px', borderRadius: '6px' }}>
-            <Clipboard size={20} />
-          </div>
-          <div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('statsTextLists')}</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>{stats.inventoryTextsProcessed}</div>
           </div>
         </div>
 

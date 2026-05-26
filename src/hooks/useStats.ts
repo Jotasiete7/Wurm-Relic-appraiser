@@ -5,7 +5,6 @@ export interface WurmStats {
   totalRuns: number;
   screenshotsProcessed: number;
   examineLogsProcessed: number;
-  inventoryTextsProcessed: number;
   tierCounts: {
     S: number;
     A: number;
@@ -21,7 +20,6 @@ const DEFAULT_STATS: WurmStats = {
   totalRuns: 0,
   screenshotsProcessed: 0,
   examineLogsProcessed: 0,
-  inventoryTextsProcessed: 0,
   tierCounts: {
     S: 0,
     A: 0,
@@ -82,13 +80,6 @@ export function useStats() {
     }));
   }, [saveStats]);
 
-  const incrementInventoryTexts = useCallback(() => {
-    saveStats(prev => ({
-      ...prev,
-      inventoryTextsProcessed: prev.inventoryTextsProcessed + 1
-    }));
-  }, [saveStats]);
-
   const recordAnalysisRun = useCallback((items: WurmItem[]) => {
     saveStats(prev => {
       const newTierCounts = { ...prev.tierCounts };
@@ -115,7 +106,6 @@ export function useStats() {
     stats,
     incrementScreenshots,
     incrementExamineLogs,
-    incrementInventoryTexts,
     recordAnalysisRun,
     resetStats
   };

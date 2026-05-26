@@ -84,6 +84,7 @@ export const TRANSLATIONS = {
     noEffectsScored: "No effects scored",
     fromRune: "from",
     pts: "pts",
+    betaNotice: "⚡ Relic Appraiser is currently in Beta. Please report any bugs or scoring issues on Discord!",
   },
   pt: {
     help: "Ajuda",
@@ -170,5 +171,6 @@ export const TRANSLATIONS = {
     noEffectsScored: "Nenhum efeito pontuado",
     fromRune: "de",
     pts: "pts",
+    betaNotice: "⚡ O Relic Appraiser está atualmente em fase Beta. Por favor, reporte bugs ou problemas de pontuação no Discord!",
   }
 };

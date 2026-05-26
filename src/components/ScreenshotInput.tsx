@@ -1,38 +1,23 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { ScreenshotItem } from '../types';
-import { parseScreenshotText, parseScreenshotImage } from '../parser/screenshotParser';
-import { Upload, ClipboardList, Loader, CheckCircle } from 'lucide-react';
+import { parseScreenshotImage } from '../parser/screenshotParser';
+import { Upload, Loader, CheckCircle } from 'lucide-react';
 
 interface ScreenshotInputProps {
   onItemsReady: (items: ScreenshotItem[]) => void;
   onScreenshotProcessed?: () => void;
-  onTextListProcessed?: () => void;
   t: (key: any) => string;
 }
-
-type Tab = 'image' | 'text';
 
 export function ScreenshotInput({ 
   onItemsReady,
   onScreenshotProcessed,
-  onTextListProcessed,
   t
 }: ScreenshotInputProps) {
-  const [tab, setTab] = useState<Tab>('text');
-  const [rawText, setRawText] = useState('');
   const [parsedItems, setParsedItems] = useState<ScreenshotItem[]>([]);
   const [ocrProgress, setOcrProgress] = useState<number | null>(null);
   const [ocrRaw, setOcrRaw] = useState('');
   const [isDragging, setIsDragging] = useState(false);
-
-  const handleText = useCallback(() => {
-    const items = parseScreenshotText(rawText);
-    setParsedItems(items);
-    onItemsReady(items);
-    if (items.length > 0) {
-      onTextListProcessed?.();
-    }
-  }, [rawText, onItemsReady, onTextListProcessed]);
 
   const runOcr = useCallback(async (file: File) => {
     setOcrProgress(0);
@@ -51,7 +36,6 @@ export function ScreenshotInput({
 
   // Global paste handler for Ctrl+V
   useEffect(() => {
-    if (tab !== 'image') return;
     const handleGlobalPaste = (e: ClipboardEvent) => {
       const items = e.clipboardData?.items;
       if (!items) return;
@@ -68,7 +52,7 @@ export function ScreenshotInput({
     };
     window.addEventListener('paste', handleGlobalPaste);
     return () => window.removeEventListener('paste', handleGlobalPaste);
-  }, [tab, runOcr]);
+  }, [runOcr]);
 
   // Prevent default browser behavior for drag & drop globally to avoid opening dropped files
   useEffect(() => {
@@ -131,104 +115,60 @@ export function ScreenshotInput({
     if (file) runOcr(file);
   };
 
-  const TAB_STYLE = (active: boolean): React.CSSProperties => ({
-    padding: '0.5rem 1.25rem',
-    background: active ? 'var(--accent-primary)' : 'var(--bg-panel)',
-    color: active ? '#fff' : 'var(--text-secondary)',
-    border: '1px solid ' + (active ? 'var(--accent-primary)' : 'var(--border-color)'),
-    borderRadius: '6px',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    fontSize: '0.875rem',
-    fontWeight: 500,
-  });
-
   return (
     <div>
-      {/* Tab switcher */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '1rem' }}>
-        <button style={TAB_STYLE(tab === 'text')}  onClick={() => setTab('text')}>
-          <ClipboardList size={15} /> {t('pasteTextTab')}
-        </button>
-        <button style={TAB_STYLE(tab === 'image')} onClick={() => setTab('image')}>
-          <Upload size={15} /> {t('uploadScreenshotTab')}
-        </button>
-      </div>
-
-      {/* Plain text input */}
-      {tab === 'text' && (
-        <div>
-          <p style={{ margin: '0 0 0.75rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-            {t('pasteTextInstruction')}
-          </p>
-          <textarea
-            rows={6}
-            value={rawText}
-            onChange={e => setRawText(e.target.value)}
-            placeholder={'rare stone chisel, iron    87,00  0,00  0,30  ...\ntrowel, glimmersteel (2x spd)   74,00  2,10  0,10  ...'}
-          />
-          <button onClick={handleText} style={{ marginTop: '0.75rem', width: '100%', justifyContent: 'center' }}>
-            {t('parseInventoryListBtn')}
-          </button>
-        </div>
-      )}
-
       {/* Image OCR input */}
-      {tab === 'image' && (
-        <div>
-          <p style={{ margin: '0 0 0.75rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-            {t('uploadScreenshotInstruction')}
-          </p>
-          <div
-            onDragEnter={handleDragEnter}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            style={{
-              border: `2px dashed ${isDragging ? 'var(--accent-primary)' : 'var(--border-color)'}`,
-              borderRadius: '8px',
-              padding: '2.5rem',
-              textAlign: 'center',
-              color: 'var(--text-secondary)',
-              background: isDragging ? 'rgba(212,180,131,0.08)' : 'var(--bg-panel)',
-              transition: 'all 0.2s',
-              cursor: 'pointer',
-            }}
-            onClick={() => document.getElementById('ocr-file-input')?.click()}
-          >
-            {/* pointerEvents: 'none' solves drag flickering and drop failure when hovering children */}
-            <div style={{ pointerEvents: 'none' }}>
-              {ocrProgress !== null ? (
-                <div>
-                  <Loader size={32} style={{ color: 'var(--accent-primary)', animation: 'spin 1s linear infinite' }} />
-                  <div style={{ marginTop: '0.5rem' }}>{t('runningOcr')} {ocrProgress}%</div>
-                </div>
-              ) : (
-                <div>
-                  <Upload size={32} style={{ marginBottom: '0.5rem', color: isDragging ? 'var(--accent-primary)' : 'var(--text-muted)' }} />
-                  <div>{t('dropZoneText')}</div>
-                  <div style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>{t('acceptedFormats')}</div>
-                </div>
-              )}
-            </div>
+      <div>
+        <p style={{ margin: '0 0 0.75rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+          {t('uploadScreenshotInstruction')}
+        </p>
+        <div
+          onDragEnter={handleDragEnter}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          style={{
+            border: `2px dashed ${isDragging ? 'var(--accent-primary)' : 'var(--border-color)'}`,
+            borderRadius: '8px',
+            padding: '2.5rem',
+            textAlign: 'center',
+            color: 'var(--text-secondary)',
+            background: isDragging ? 'rgba(212,180,131,0.08)' : 'var(--bg-panel)',
+            transition: 'all 0.2s',
+            cursor: 'pointer',
+          }}
+          onClick={() => document.getElementById('ocr-file-input')?.click()}
+        >
+          {/* pointerEvents: 'none' solves drag flickering and drop failure when hovering children */}
+          <div style={{ pointerEvents: 'none' }}>
+            {ocrProgress !== null ? (
+              <div>
+                <Loader size={32} style={{ color: 'var(--accent-primary)', animation: 'spin 1s linear infinite' }} />
+                <div style={{ marginTop: '0.5rem' }}>{t('runningOcr')} {ocrProgress}%</div>
+              </div>
+            ) : (
+              <div>
+                <Upload size={32} style={{ marginBottom: '0.5rem', color: isDragging ? 'var(--accent-primary)' : 'var(--text-muted)' }} />
+                <div>{t('dropZoneText')}</div>
+                <div style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>{t('acceptedFormats')}</div>
+              </div>
+            )}
           </div>
-          <input
-            id="ocr-file-input"
-            type="file"
-            accept="image/*"
-            style={{ display: 'none' }}
-            onChange={handleFileInput}
-          />
-          {ocrRaw && (
-            <details style={{ marginTop: '0.75rem' }}>
-              <summary style={{ fontSize: '0.8rem', color: 'var(--text-muted)', cursor: 'pointer' }}>{t('viewRawOcr')}</summary>
-              <textarea rows={5} value={ocrRaw} readOnly style={{ marginTop: '0.5rem', fontSize: '0.75rem' }} />
-            </details>
-          )}
         </div>
-      )}
+        <input
+          id="ocr-file-input"
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={handleFileInput}
+        />
+        {ocrRaw && (
+          <details style={{ marginTop: '0.75rem' }}>
+            <summary style={{ fontSize: '0.8rem', color: 'var(--text-muted)', cursor: 'pointer' }}>{t('viewRawOcr')}</summary>
+            <textarea rows={5} value={ocrRaw} readOnly style={{ marginTop: '0.5rem', fontSize: '0.75rem' }} />
+          </details>
+        )}
+      </div>
 
       {/* Preview table */}
       {parsedItems.length > 0 && (

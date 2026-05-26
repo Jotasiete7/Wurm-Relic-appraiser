@@ -26,7 +26,6 @@ export default function App() {
     stats,
     incrementScreenshots,
     incrementExamineLogs,
-    incrementInventoryTexts,
     recordAnalysisRun,
     resetStats
   } = useStats();
@@ -60,6 +59,24 @@ export default function App() {
       />
 
       <div className="container" style={{ marginTop: '2rem' }}>
+        {/* Beta Notice Banner */}
+        <div style={{
+          background: 'rgba(212, 180, 131, 0.06)',
+          border: '1px dashed var(--accent-primary)',
+          color: 'var(--accent-primary)',
+          borderRadius: '8px',
+          padding: '0.75rem 1.25rem',
+          fontSize: '0.85rem',
+          fontWeight: 500,
+          marginBottom: '1.5rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          lineHeight: 1.4
+        }}>
+          {t('betaNotice')}
+        </div>
+
         {/* Header controls (moved from old header) */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '1.5rem', gap: '12px', flexWrap: 'wrap' }}>
           
@@ -151,7 +168,6 @@ export default function App() {
                 <ScreenshotInput 
                   onItemsReady={setSsItems} 
                   onScreenshotProcessed={incrementScreenshots}
-                  onTextListProcessed={incrementInventoryTexts}
                   t={t}
                 />
               </div>
