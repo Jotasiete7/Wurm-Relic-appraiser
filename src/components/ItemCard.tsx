@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { WurmItem } from '../types';
 import { Copy, ChevronDown, ChevronUp, Crown, Star, CheckCircle, AlertTriangle, Trash2, Image, FileText, Layers, Zap } from 'lucide-react';
 import { EFFECT_DISPLAY_NAMES } from '../data/effectDisplayNames';

@@ -1,4 +1,4 @@
-import type { WurmItem, WurmRune, WurmEnchant, ItemRarity, MetalType, RuneEffect } from '../types';
+import type { WurmItem, ItemRarity, MetalType } from '../types';
 import { getItemCategory } from '../data/itemCategoryMap';
 import { getRuneEffects } from '../data/runeEffectMap';
 

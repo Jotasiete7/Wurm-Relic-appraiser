@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { WurmItem } from '../types';
 import { Copy, ChevronDown, ChevronUp, Crown, Star, CheckCircle, AlertTriangle, Trash2, Image, FileText, Layers, Zap } from 'lucide-react';
 import { EFFECT_DISPLAY_NAMES } from '../data/effectDisplayNames';
@@ -164,7 +164,7 @@ function ItemRow({ item, t }: { item: WurmItem; t: (key: any) => string }) {
         {/* Data source + actions */}
         <td style={{ padding: '10px 8px', whiteSpace: 'nowrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end' }}>
-            <DsIcon size={13} style={{ color: item.dataSource === 'merged' ? '#10b981' : '#f97316', flexShrink: 0 }} />
+            <DsIcon size={13} style={{ color: item.dataSource === 'merged' ? '#10b981' : '#f97316', flexShrink: 0 }} title={getDataSourceLabel(item.dataSource)} />
             <button
               onClick={handleCopy}
               title={t('copyRename')}

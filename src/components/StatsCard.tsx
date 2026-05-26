@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { WurmStats } from '../hooks/useStats';
 import { BarChart3, RotateCcw, FileText, Image, Clipboard, TrendingUp, Zap, AlertTriangle } from 'lucide-react';
 

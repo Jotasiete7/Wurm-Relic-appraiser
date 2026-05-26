@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import type { WurmItem, ScreenshotItem, ExamineEntry } from './types';
 import { ScreenshotInput } from './components/ScreenshotInput';
 import { ExamineInput } from './components/ExamineInput';

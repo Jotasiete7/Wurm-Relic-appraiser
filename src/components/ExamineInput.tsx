@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { ExamineEntry } from '../types';
 import { parseExamineLog } from '../parser/examineParser';
 import { FileText, CheckCircle } from 'lucide-react';

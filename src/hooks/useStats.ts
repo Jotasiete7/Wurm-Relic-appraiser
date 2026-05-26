@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { Tier, WurmItem } from '../types';
+import type { WurmItem } from '../types';
 
 export interface WurmStats {
   totalRuns: number;
