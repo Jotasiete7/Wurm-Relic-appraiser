@@ -164,7 +164,9 @@ function ItemRow({ item, t }: { item: WurmItem; t: (key: any) => string }) {
         {/* Data source + actions */}
         <td style={{ padding: '10px 8px', whiteSpace: 'nowrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end' }}>
-            <DsIcon size={13} style={{ color: item.dataSource === 'merged' ? '#10b981' : '#f97316', flexShrink: 0 }} title={getDataSourceLabel(item.dataSource)} />
+            <span title={getDataSourceLabel(item.dataSource)} style={{ display: 'inline-flex' }}>
+              <DsIcon size={13} style={{ color: item.dataSource === 'merged' ? '#10b981' : '#f97316', flexShrink: 0 }} />
+            </span>
             <button
               onClick={handleCopy}
               title={t('copyRename')}
