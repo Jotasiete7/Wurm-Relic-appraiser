@@ -37,6 +37,7 @@ function defaultItem(): Omit<WurmItem, 'id' | 'rawName' | 'normalizedName' | 'da
     imbuis:         [],
     playerNote:     null,
     playerTierTag:  null,
+    maker:          null,
     score:          0,
     tier:           'Trash',
     scoreBreakdown: { runePoints: 0, enchantPoints: 0, metalBonus: 0, rarityBonus: 0, total: 0, effectsScored: [], enchantsScored: [] },
@@ -125,6 +126,7 @@ export function mergeInputs(
       runes:          examineEntry?.runes ?? [],
       enchants:       examineEntry?.enchants ?? [],
       imbuis:         examineEntry?.imbuis ?? [],
+      maker:          examineEntry?.maker ?? null,
       dataSource:     examineEntry ? 'merged' : 'screenshot_only',
       descriptionRaw: examineEntry?.descriptionRaw,
     };
@@ -151,6 +153,7 @@ export function mergeInputs(
       runes:          entry.runes,
       enchants:       entry.enchants,
       imbuis:         entry.imbuis,
+      maker:          entry.maker,
       dataSource:     'examine_only',
       descriptionRaw: entry.descriptionRaw,
     };

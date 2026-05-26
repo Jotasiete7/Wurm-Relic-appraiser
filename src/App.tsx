@@ -10,6 +10,7 @@ import { Header } from './ecossistema-guilda/layout/Header';
 import { useStats } from './hooks/useStats';
 import { StatsCard } from './components/StatsCard';
 import { useLanguage } from './hooks/useLanguage';
+import { logAppraisalToDatabase } from './services/statsLogger';
 
 type Step = 'input' | 'results';
 
@@ -37,7 +38,14 @@ export default function App() {
     setItems(scored);
     setStep('results');
     recordAnalysisRun(scored);
-  }, [ssItems, examineEntries, recordAnalysisRun]);
+
+    // Enviar dados estatísticos anonimizados em segundo plano para o Supabase (ou simulação local)
+    logAppraisalToDatabase(scored, {
+      hasScreenshot: ssItems.length > 0,
+      hasExamine: examineEntries.length > 0,
+      lang,
+    });
+  }, [ssItems, examineEntries, recordAnalysisRun, lang]);
 
   const handleReset = () => {
     setSsItems([]);

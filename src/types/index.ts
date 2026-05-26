@@ -64,6 +64,7 @@ export interface WurmItem {
   imbuis: WurmImbui[];
   playerNote: string | null;     // text in parens from screenshot — display only
   playerTierTag: Tier | null;
+  maker: string | null;          // maker name from examine log
   score: number;
   tier: Tier;
   scoreBreakdown: ScoreBreakdown;
