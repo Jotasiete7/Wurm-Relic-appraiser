@@ -56,7 +56,7 @@ export function ExamineInput({ onEntriesReady, onExamineLogProcessed, t }: Exami
           background: hasText
             ? isParsed
               ? 'linear-gradient(135deg, #10b981, #059669)'
-              : 'linear-gradient(135deg, #d4b483, #b8954f)',
+              : 'linear-gradient(135deg, #d4b483, #b8954f)'
             : 'var(--bg-panel)',
           color: hasText ? '#fff' : 'var(--text-muted)',
           boxShadow: hasText && !isParsed
