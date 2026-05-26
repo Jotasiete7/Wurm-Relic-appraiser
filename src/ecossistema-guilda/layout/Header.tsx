@@ -28,6 +28,7 @@ export interface HeaderProps {
     centralNav?: React.ReactNode;
     extraModules?: React.ReactNode;
     LinkComponent?: React.ElementType;
+    onLanguageChange?: (lang: 'en' | 'pt') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -38,6 +39,7 @@ export const Header: React.FC<HeaderProps> = ({
     brandSubName,
     currentToolId,
     lang = 'en',
+    onLanguageChange,
     auth,
     navigation = [],
     centralNav,
@@ -119,6 +121,25 @@ export const Header: React.FC<HeaderProps> = ({
                     <Coffee size={14} className="animate-pulse shrink-0" />
                     <span className="hidden sm:inline">Support Us</span>
                 </a>
+                
+                {onLanguageChange && (
+                    <div className={styles.selectorContainer}>
+                        <button 
+                            onClick={() => onLanguageChange('en')} 
+                            className={`${styles.langBtn} ${lang === 'en' ? styles.langBtnActive : ''}`}
+                        >
+                            EN
+                        </button>
+                        <div className={styles.divider_lang}></div>
+                        <button 
+                            onClick={() => onLanguageChange('pt')} 
+                            className={`${styles.langBtn} ${lang === 'pt' ? styles.langBtnActive : ''}`}
+                        >
+                            PT
+                        </button>
+                    </div>
+                )}
+                
                 {extraModules}
                 
                 {auth?.user ? (

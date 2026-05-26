@@ -7,6 +7,7 @@ import { mergeInputs } from './parser/mergeInputs';
 import { scoreAndTierItems } from './scoring/tierEngine';
 import { HelpCircle, Play, RotateCcw, Info } from 'lucide-react';
 import { Header } from './ecossistema-guilda/layout/Header';
+import { LayoutBase } from './ecossistema-guilda/layout/LayoutBase';
 import { useStats } from './hooks/useStats';
 import { StatsCard } from './components/StatsCard';
 import { useLanguage } from './hooks/useLanguage';
@@ -57,13 +58,14 @@ export default function App() {
   const canAnalyze = ssItems.length > 0 || examineEntries.length > 0;
 
   return (
-    <>
+    <LayoutBase>
       {/* Ecosystem Header */}
       <Header 
         currentToolId="chest"
         brandName="A Guilda"
         brandSubName="Relic Appraiser"
         lang={lang}
+        onLanguageChange={changeLanguage}
       />
 
       <div className="container" style={{ marginTop: '2rem' }}>
@@ -88,44 +90,6 @@ export default function App() {
         {/* Header controls (moved from old header) */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '1.5rem', gap: '12px', flexWrap: 'wrap' }}>
           
-          {/* Language Selector Selector */}
-          <div style={{ display: 'flex', gap: '2px', background: 'var(--bg-panel)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '2px' }}>
-            <button 
-              onClick={() => changeLanguage('en')}
-              style={{ 
-                background: lang === 'en' ? 'var(--accent-primary)' : 'transparent',
-                color: lang === 'en' ? '#000' : 'var(--text-secondary)',
-                border: 'none',
-                padding: '4px 10px',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                borderRadius: '4px',
-                cursor: 'pointer',
-                gap: 0,
-                transition: 'all 0.2s'
-              }}
-            >
-              EN
-            </button>
-            <button 
-              onClick={() => changeLanguage('pt')}
-              style={{ 
-                background: lang === 'pt' ? 'var(--accent-primary)' : 'transparent',
-                color: lang === 'pt' ? '#000' : 'var(--text-secondary)',
-                border: 'none',
-                padding: '4px 10px',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                borderRadius: '4px',
-                cursor: 'pointer',
-                gap: 0,
-                transition: 'all 0.2s'
-              }}
-            >
-              PT
-            </button>
-          </div>
-
           {step === 'results' && (
             <button onClick={handleReset} style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-color)', fontSize: '0.875rem' }}>
               <RotateCcw size={14} /> {t('newAnalysis')}
@@ -261,6 +225,6 @@ export default function App() {
         {/* Persistent Statistics Dashboard */}
         <StatsCard stats={stats} onReset={resetStats} t={t} />
       </div>
-    </>
+    </LayoutBase>
   );
 }
