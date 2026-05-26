@@ -7,6 +7,24 @@ export interface AppraisalMetadata {
   lang: string;
 }
 
+// ── Client-side Security Guardrails ──────────────────────────────────────────
+// 1. Cooldown: evita que o mesmo jogador envie múltiplas análises em sequência
+//    rápida (ex: double-click no botão Analyze).
+const COOLDOWN_MS = 15_000; // 15 segundos entre envios
+let lastSubmitTime = 0;
+
+// 2. Limites máximos — espelham as constraints do banco para rejeitar localmente
+//    antes mesmo de tentar enviar, reduzindo requisições inválidas.
+const MAX_ITEMS_PER_APPRAISAL = 200;
+const MAX_STRING_LENGTH = 200;
+
+/** Trunca strings para não exceder os limites do banco de dados. */
+function trunc(value: string | null | undefined, max = MAX_STRING_LENGTH): string | null {
+  if (!value) return null;
+  return value.length > max ? value.slice(0, max) : value;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
  * Logs the results of an appraisal to the global Supabase database in the background.
  * If Supabase is not configured (e.g. running locally without env keys), it runs in
@@ -17,6 +35,20 @@ export async function logAppraisalToDatabase(
   meta: AppraisalMetadata
 ): Promise<void> {
   if (items.length === 0) return;
+
+  // ── Cooldown check ────────────────────────────────────────────────────────
+  const now = Date.now();
+  if (now - lastSubmitTime < COOLDOWN_MS) {
+    console.info(`[Supabase Stats] Cooldown ativo — próximo envio disponível em ${Math.ceil((COOLDOWN_MS - (now - lastSubmitTime)) / 1000)}s.`);
+    return;
+  }
+
+  // ── Max items cap ─────────────────────────────────────────────────────────
+  const safeItems = items.slice(0, MAX_ITEMS_PER_APPRAISAL);
+  if (items.length > MAX_ITEMS_PER_APPRAISAL) {
+    console.warn(`[Supabase Stats] Análise contém ${items.length} itens — enviando somente os primeiros ${MAX_ITEMS_PER_APPRAISAL}.`);
+  }
+
 
   if (!isSupabaseConfigured || !supabase) {
     // === SMART SIMULATION FALLBACK ===
@@ -76,8 +108,8 @@ export async function logAppraisalToDatabase(
     const { data: appraisalData, error: appraisalError } = await supabase
       .from('appraisals')
       .insert({
-        source_language: meta.lang,
-        items_count: items.length,
+        source_language: trunc(meta.lang, 5),
+        items_count: safeItems.length,
         has_screenshot: meta.hasScreenshot,
         has_examine: meta.hasExamine,
       })
@@ -90,23 +122,24 @@ export async function logAppraisalToDatabase(
     }
 
     const appraisalId = appraisalData.id;
+    lastSubmitTime = Date.now(); // ← marca o cooldown assim que o insert principal passa
 
     // 2. Loop and insert each item and its children sequentially to maintain bulletproof matching & relations
-    for (const item of items) {
+    for (const item of safeItems) {
       const { data: itemData, error: itemError } = await supabase
         .from('appraised_items')
         .insert({
           appraisal_id: appraisalId,
-          raw_name: item.rawName,
-          normalized_name: item.normalizedName,
-          category: item.category,
-          metal: item.metal,
-          rarity: item.rarity,
+          raw_name: trunc(item.rawName),
+          normalized_name: trunc(item.normalizedName),
+          category: trunc(item.category, 50),
+          metal: trunc(item.metal, 80),
+          rarity: trunc(item.rarity, 20),
           ql: item.ql,
           damage: item.damage,
-          score: item.score,
-          tier: item.tier,
-          maker: item.maker,
+          score: Math.min(item.score, 10000), // cap de segurança espelhando constraint
+          tier: trunc(item.tier, 20),
+          maker: trunc(item.maker, 100),
           is_skiller: !!item.isSkiller,
         })
         .select('id')
