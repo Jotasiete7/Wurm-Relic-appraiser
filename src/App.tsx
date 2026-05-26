@@ -5,13 +5,14 @@ import { ExamineInput } from './components/ExamineInput';
 import { ItemTable } from './components/ItemTable';
 import { mergeInputs } from './parser/mergeInputs';
 import { scoreAndTierItems } from './scoring/tierEngine';
-import { HelpCircle, Play, RotateCcw, Info } from 'lucide-react';
+import { Play, RotateCcw } from 'lucide-react';
 import { Header } from './ecossistema-guilda/layout/Header';
 import { LayoutBase } from './ecossistema-guilda/layout/LayoutBase';
 import { useStats } from './hooks/useStats';
 import { StatsCard } from './components/StatsCard';
 import { useLanguage } from './hooks/useLanguage';
 import { logAppraisalToDatabase } from './services/statsLogger';
+import { QuickGuide } from './components/QuickGuide';
 
 type Step = 'input' | 'results';
 
@@ -20,7 +21,6 @@ export default function App() {
   const [ssItems, setSsItems] = useState<ScreenshotItem[]>([]);
   const [examineEntries, setExamineEntries] = useState<ExamineEntry[]>([]);
   const [items, setItems] = useState<WurmItem[]>([]);
-  const [showHelp, setShowHelp] = useState(false);
 
   const { lang, changeLanguage, t } = useLanguage();
 
@@ -87,32 +87,15 @@ export default function App() {
           {t('betaNotice')}
         </div>
 
-        {/* Header controls (moved from old header) */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '1.5rem', gap: '12px', flexWrap: 'wrap' }}>
-          
-          {step === 'results' && (
+        {/* Quick Guide — always visible on input step */}
+        {step === 'input' && <QuickGuide t={t} />}
+
+        {/* Action bar (results only) */}
+        {step === 'results' && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem' }}>
             <button onClick={handleReset} style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-color)', fontSize: '0.875rem' }}>
               <RotateCcw size={14} /> {t('newAnalysis')}
             </button>
-          )}
-          <button onClick={() => setShowHelp(h => !h)} style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-color)', fontSize: '0.875rem' }}>
-            <HelpCircle size={14} /> {showHelp ? t('hideHelp') : t('help')}
-          </button>
-        </div>
-
-        {/* Help panel */}
-        {showHelp && (
-          <div className="card" style={{ marginBottom: '2rem', borderLeft: '4px solid var(--accent-primary)' }}>
-            <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 0, fontSize: '1.1rem' }}>
-              <Info size={20} color="var(--accent-primary)" /> {t('howToUse')}
-            </h2>
-            <div style={{ display: 'grid', gap: '0.75rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-              <p><strong>{t('helpP1')}</strong></p>
-              <p><strong>{t('helpP2')}</strong></p>
-              <p>{t('helpP3')}</p>
-              <p>{t('helpP4')}</p>
-              <p>{t('helpP5')}</p>
-            </div>
           </div>
         )}
 
