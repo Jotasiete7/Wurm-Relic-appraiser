@@ -5,9 +5,11 @@ import { FileText, CheckCircle } from 'lucide-react';
 
 interface ExamineInputProps {
   onEntriesReady: (entries: ExamineEntry[]) => void;
+  onExamineLogProcessed?: () => void;
+  t: (key: any) => string;
 }
 
-export function ExamineInput({ onEntriesReady }: ExamineInputProps) {
+export function ExamineInput({ onEntriesReady, onExamineLogProcessed, t }: ExamineInputProps) {
   const [text, setText] = useState('');
   const [count, setCount] = useState<number | null>(null);
 
@@ -15,12 +17,15 @@ export function ExamineInput({ onEntriesReady }: ExamineInputProps) {
     const entries = parseExamineLog(text);
     setCount(entries.length);
     onEntriesReady(entries);
+    if (entries.length > 0) {
+      onExamineLogProcessed?.();
+    }
   };
 
   return (
     <div>
       <p style={{ margin: '0 0 0.75rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-        In Wurm, examine all items in the chest. Copy the entire <strong>Event</strong> tab log and paste it below.
+        {t('examineInstruction')}
       </p>
       <textarea
         rows={8}
@@ -29,12 +34,12 @@ export function ExamineInput({ onEntriesReady }: ExamineInputProps) {
         placeholder={'[17:03:47] A straight tool with a strong hard blade made for cutting stone...\n[17:03:47] A lead rune of Fo has been attached, so it will...'}
       />
       <button onClick={handleParse} style={{ marginTop: '0.75rem', width: '100%', justifyContent: 'center' }}>
-        <FileText size={15} /> Parse Examine Log
+        <FileText size={15} /> {t('parseExamineLogBtn')}
       </button>
       {count !== null && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '0.75rem', color: '#10b981', fontSize: '0.875rem' }}>
           <CheckCircle size={16} />
-          <span>{count} examine entries parsed</span>
+          <span>{count} {t('examineEntriesParsed')}</span>
         </div>
       )}
     </div>

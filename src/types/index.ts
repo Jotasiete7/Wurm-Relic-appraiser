@@ -16,7 +16,7 @@ export type ItemRarity = 'common' | 'rare' | 'supreme' | 'fantastic';
 
 export type MetalType = string; // Was limited to metals, now accepts any material string
 
-export type Tier = 'S' | 'A' | 'B' | 'C' | 'Trash';
+export type Tier = 'S' | 'A' | 'B' | 'C' | 'Trash' | 'Skiller';
 
 export type DataSource = 'screenshot_only' | 'examine_only' | 'merged';
 
@@ -33,12 +33,21 @@ export interface WurmEnchant {
   power: number;
 }
 
+export interface WurmImbui {
+  name: string;       // e.g. "oil of the blacksmith"
+  skill: string;      // e.g. "Blacksmithing"
+  ql: number;         // e.g. 100
+  rawLine: string;
+}
+
 export interface ScoreBreakdown {
   runePoints: number;
+  enchantPoints: number;
   metalBonus: number;
   rarityBonus: number;
   total: number;
   effectsScored: { effect: RuneEffect; points: number; runeName: string }[];
+  enchantsScored: { name: string; power: number; points: number }[];
 }
 
 export interface WurmItem {
@@ -52,6 +61,7 @@ export interface WurmItem {
   damage: number | null;
   runes: WurmRune[];
   enchants: WurmEnchant[];
+  imbuis: WurmImbui[];
   playerNote: string | null;     // text in parens from screenshot — display only
   playerTierTag: Tier | null;
   score: number;
@@ -59,6 +69,7 @@ export interface WurmItem {
   scoreBreakdown: ScoreBreakdown;
   dataSource: DataSource;
   descriptionRaw?: string;       // raw description for unknown items UI
+  isSkiller?: boolean;
 }
 
 // Intermediate type from examine log before merge
@@ -69,7 +80,7 @@ export interface ExamineEntry {
   runes: WurmRune[];
   enchants: WurmEnchant[];
   maker: string | null;
-  ointments: string[];
+  imbuis: WurmImbui[];
 }
 
 // Intermediate type from screenshot OCR/text before merge

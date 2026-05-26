@@ -175,15 +175,16 @@ export function parseWurmLogs(logText: string): WurmItem[] {
         normalizedName: itemName ?? 'unknown item',
         metal,
         rarity,
-        category: itemName ? getItemCategory(itemName) : null,
+        category: (itemName ? getItemCategory(itemName) : null) ?? 'tool_craft',
         runes: [],
         enchants: [],
+        imbuis: [],
         playerTierTag: null,
         ql: 0,
         damage: 0,
         score: 0,
         tier: 'Trash',
-        scoreBreakdown: { runePoints: 0, metalBonus: 0, rarityBonus: 0, total: 0, effectsScored: [] }
+        scoreBreakdown: { runePoints: 0, enchantPoints: 0, metalBonus: 0, rarityBonus: 0, total: 0, effectsScored: [], enchantsScored: [] }
       };
       continue;
     }

@@ -1,9 +1,9 @@
-import type { ScreenshotItem, MetalType, ItemRarity } from '../types';
+import type { ScreenshotItem, ItemRarity } from '../types';
 
-// Matches: "[rare] itemname, metal [(player note)]  74,85  0,00  ..."
-// Also handles inventory state prefixes (+, -, ~, », #, |) and items without metals.
+// Matches: "[rare] itemname, metal [(player note)] QL DMG [Weight] [i]"
+// Extremely robust against unclosed parentheses (column clipping) and ignores columns after DMG.
 const INVENTORY_LINE_RE =
-  /^[-+»~#|*\s]*(?:(rare|supreme|fantastic)\s+)?([^,(]+?)(?:,\s*([a-zA-Z]+))?(?:\s*\(([^)]*)\))?\s+([\d.,]+)\s+([\d.,]+)/i;
+  /^[-+»~#|*\s]*(?:(rare|supreme|fantastic)\s+)?([^,(]+?)(?:,\s*([a-zA-Z]+))?(?:\s*\((.*?)\)?)?\s+([\d.,]+)\s+([\d.,]+).*/i;
 
 function parseDecimal(value: string): number {
   // Handle both comma and dot as decimal separator

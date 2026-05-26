@@ -15,8 +15,9 @@ export function ItemGrid({ items }: ItemGridProps) {
     );
   }
 
-  // Sort items by score descending
-  const sortedItems = [...items].sort((a, b) => b.score - a.score);
+  const normalItems = items.filter(i => !i.isSkiller).sort((a, b) => b.score - a.score);
+  const skillerItems = items.filter(i => i.isSkiller).sort((a, b) => b.score - a.score);
+  const sortedItems = [...normalItems, ...skillerItems];
 
   return (
     <div className="item-grid">

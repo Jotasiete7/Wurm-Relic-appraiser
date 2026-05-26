@@ -6,7 +6,7 @@ const TIMESTAMP_RE = /^\[\d{2}:\d{2}:\d{2}\]\s*/;
 const RUNE_LINE_RE = /^A (\w+) rune of (\w+) has been attached/i;
 const ENCHANT_LINE_RE = /^(.+?) has been cast on it[^[]*\[(\d+)\]/i;
 const MAKER_LINE_RE = /^You can (?:barely|easily) make out the signature of its maker/i;
-const OINTMENT_LINE_RE = /^It has been smeared with (.+?)(?:,|\.)/i;
+const IMBUI_LINE_RE = /^It has been smeared with (?:a|an)?\s*(.+?)(?:,\s*so it improves\s+(.+?)\s+max QL\s*\[(\d+)\]|\.|$)/i;
 const SKIP_LINE_RE = /^(Colors:|It is imbued|It could be improved|You need to)/i;
 
 const RARITY_CHECKS: { pattern: RegExp; rarity: ItemRarity }[] = [
@@ -19,7 +19,7 @@ function isDescriptionLine(line: string): boolean {
   if (RUNE_LINE_RE.test(line)) return false;
   if (ENCHANT_LINE_RE.test(line)) return false;
   if (MAKER_LINE_RE.test(line)) return false;
-  if (OINTMENT_LINE_RE.test(line)) return false;
+  if (IMBUI_LINE_RE.test(line)) return false;
   if (SKIP_LINE_RE.test(line)) return false;
   // Description lines in Wurm start with a capital letter.
   // We removed the A/An/The requirement because tools like Carving Knife start with "Made for carving"
@@ -61,7 +61,7 @@ export function parseExamineLog(logText: string): ExamineEntry[] {
         runes: [],
         enchants: [],
         maker: null,
-        ointments: [],
+        imbuis: [],
       };
       continue;
     }
@@ -75,10 +75,20 @@ export function parseExamineLog(logText: string): ExamineEntry[] {
       continue;
     }
 
-    // Ointment / oil / potion
-    if (OINTMENT_LINE_RE.test(line)) {
-      const m = line.match(OINTMENT_LINE_RE);
-      if (m) current.ointments.push(m[1].trim());
+    // Ointment / oil / potion -> Imbui
+    if (IMBUI_LINE_RE.test(line)) {
+      const m = line.match(IMBUI_LINE_RE);
+      if (m) {
+        const name = m[1].trim();
+        const skill = m[2] ? m[2].trim() : 'Unknown';
+        const ql = m[3] ? parseInt(m[3], 10) : 100;
+        current.imbuis.push({
+          name,
+          skill,
+          ql,
+          rawLine: line,
+        });
+      }
       continue;
     }
 

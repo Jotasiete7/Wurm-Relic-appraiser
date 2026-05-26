@@ -30,6 +30,8 @@
   --tier-c-text: #fff;
   --tier-trash-bg: #6b7280;
   --tier-trash-text: #fff;
+  --tier-skiller-bg: #8b5cf6;
+  --tier-skiller-text: #fff;
 
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   line-height: 1.5;
@@ -114,6 +116,7 @@ body {
 .badge.tier-b { background: var(--tier-b-bg); color: var(--tier-b-text); }
 .badge.tier-c { background: var(--tier-c-bg); color: var(--tier-c-text); }
 .badge.tier-trash { background: var(--tier-trash-bg); color: var(--tier-trash-text); }
+.badge.tier-skiller { background: var(--tier-skiller-bg); color: var(--tier-skiller-text); }
 
 /* Buttons */
 button {

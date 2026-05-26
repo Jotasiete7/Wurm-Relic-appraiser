@@ -1,6 +1,6 @@
 import type {
   WurmItem, ScreenshotItem, ExamineEntry,
-  ItemCategory, ItemRarity, MetalType, Tier,
+  ItemCategory, ItemRarity,
 } from '../types';
 import { getItemCategory } from '../data/itemCategoryMap';
 
@@ -13,6 +13,18 @@ function normalizeForMatch(name: string): string {
   return name.toLowerCase().trim().replace(/\s+/g, ' ');
 }
 
+function deobfuscateMaker(maker: string | null): string {
+  if (!maker) return '';
+  return maker.replace(/\./g, '').toLowerCase();
+}
+
+function matchesMaker(maker: string | null, note: string | null): boolean {
+  if (!maker || !note) return false;
+  const cleanMaker = deobfuscateMaker(maker);
+  if (!cleanMaker) return false;
+  return note.toLowerCase().includes(cleanMaker);
+}
+
 function defaultItem(): Omit<WurmItem, 'id' | 'rawName' | 'normalizedName' | 'dataSource'> {
   return {
     metal:          null,
@@ -22,11 +34,12 @@ function defaultItem(): Omit<WurmItem, 'id' | 'rawName' | 'normalizedName' | 'da
     damage:         null,
     runes:          [],
     enchants:       [],
+    imbuis:         [],
     playerNote:     null,
     playerTierTag:  null,
     score:          0,
     tier:           'Trash',
-    scoreBreakdown: { runePoints: 0, metalBonus: 0, rarityBonus: 0, total: 0, effectsScored: [] },
+    scoreBreakdown: { runePoints: 0, enchantPoints: 0, metalBonus: 0, rarityBonus: 0, total: 0, effectsScored: [], enchantsScored: [] },
     descriptionRaw: undefined,
   };
 }
@@ -57,10 +70,21 @@ export function mergeInputs(
     const key = normalizeForMatch(ss.normalizedName);
     const matchingEntries = examineMap.get(key) ?? [];
     
-    // Pick the first unused examine entry for this exact name
-    let examineEntry = matchingEntries.find(
+    // Pick the first unused examine entry for this exact name, or disambiguate
+    const unusedEntries = matchingEntries.filter(
       e => !usedExamineKeys.has(`${key}_${matchingEntries.indexOf(e)}`)
     );
+
+    let examineEntry: ExamineEntry | undefined = undefined;
+    if (unusedEntries.length > 0) {
+      if (unusedEntries.length > 1 && ss.playerNote) {
+        examineEntry = unusedEntries.find(e => matchesMaker(e.maker, ss.playerNote));
+      }
+      if (!examineEntry) {
+        examineEntry = unusedEntries[0];
+      }
+    }
+
     let entryIdx = examineEntry ? matchingEntries.indexOf(examineEntry) : -1;
     let usedKey = key;
 
@@ -91,7 +115,7 @@ export function mergeInputs(
       ...defaultItem(),
       id:             genId(),
       rawName:        ss.rawName,
-      normalizedName: ss.normalizedName,
+      normalizedName: examineEntry ? examineEntry.normalizedName : ss.normalizedName,
       metal:          ss.metal,
       rarity,
       category,
@@ -100,6 +124,7 @@ export function mergeInputs(
       playerNote:     ss.playerNote,
       runes:          examineEntry?.runes ?? [],
       enchants:       examineEntry?.enchants ?? [],
+      imbuis:         examineEntry?.imbuis ?? [],
       dataSource:     examineEntry ? 'merged' : 'screenshot_only',
       descriptionRaw: examineEntry?.descriptionRaw,
     };
@@ -125,6 +150,7 @@ export function mergeInputs(
       category,
       runes:          entry.runes,
       enchants:       entry.enchants,
+      imbuis:         entry.imbuis,
       dataSource:     'examine_only',
       descriptionRaw: entry.descriptionRaw,
     };

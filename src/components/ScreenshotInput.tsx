@@ -1,15 +1,23 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import type { ScreenshotItem } from '../types';
 import { parseScreenshotText, parseScreenshotImage } from '../parser/screenshotParser';
-import { Upload, ClipboardList, Loader, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Upload, ClipboardList, Loader, CheckCircle } from 'lucide-react';
 
 interface ScreenshotInputProps {
   onItemsReady: (items: ScreenshotItem[]) => void;
+  onScreenshotProcessed?: () => void;
+  onTextListProcessed?: () => void;
+  t: (key: any) => string;
 }
 
 type Tab = 'image' | 'text';
 
-export function ScreenshotInput({ onItemsReady }: ScreenshotInputProps) {
+export function ScreenshotInput({ 
+  onItemsReady,
+  onScreenshotProcessed,
+  onTextListProcessed,
+  t
+}: ScreenshotInputProps) {
   const [tab, setTab] = useState<Tab>('text');
   const [rawText, setRawText] = useState('');
   const [parsedItems, setParsedItems] = useState<ScreenshotItem[]>([]);
@@ -21,7 +29,10 @@ export function ScreenshotInput({ onItemsReady }: ScreenshotInputProps) {
     const items = parseScreenshotText(rawText);
     setParsedItems(items);
     onItemsReady(items);
-  }, [rawText, onItemsReady]);
+    if (items.length > 0) {
+      onTextListProcessed?.();
+    }
+  }, [rawText, onItemsReady, onTextListProcessed]);
 
   const runOcr = useCallback(async (file: File) => {
     setOcrProgress(0);
@@ -30,22 +41,95 @@ export function ScreenshotInput({ onItemsReady }: ScreenshotInputProps) {
       setOcrRaw(rawOcrText);
       setParsedItems(items);
       onItemsReady(items);
+      if (items.length > 0) {
+        onScreenshotProcessed?.();
+      }
     } finally {
       setOcrProgress(null);
     }
-  }, [onItemsReady]);
+  }, [onItemsReady, onScreenshotProcessed]);
+
+  // Global paste handler for Ctrl+V
+  useEffect(() => {
+    if (tab !== 'image') return;
+    const handleGlobalPaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const file = items[i].getAsFile();
+          if (file) {
+            e.preventDefault();
+            runOcr(file);
+            break;
+          }
+        }
+      }
+    };
+    window.addEventListener('paste', handleGlobalPaste);
+    return () => window.removeEventListener('paste', handleGlobalPaste);
+  }, [tab, runOcr]);
+
+  // Prevent default browser behavior for drag & drop globally to avoid opening dropped files
+  useEffect(() => {
+    const preventDefault = (e: DragEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener('dragover', preventDefault);
+    window.addEventListener('drop', preventDefault);
+    return () => {
+      window.removeEventListener('dragover', preventDefault);
+      window.removeEventListener('drop', preventDefault);
+    };
+  }, []);
+
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    // Check for files dropped
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      runOcr(e.dataTransfer.files[0]);
+      return;
+    }
+
+    // Fallback checking for items
+    if (e.dataTransfer.items) {
+      for (let i = 0; i < e.dataTransfer.items.length; i++) {
+        if (e.dataTransfer.items[i].kind === 'file') {
+          const file = e.dataTransfer.items[i].getAsFile();
+          if (file) {
+            runOcr(file);
+            break;
+          }
+        }
+      }
+    }
+  }, [runOcr]);
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) runOcr(file);
   };
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) runOcr(file);
-  }, [runOcr]);
 
   const TAB_STYLE = (active: boolean): React.CSSProperties => ({
     padding: '0.5rem 1.25rem',
@@ -66,10 +150,10 @@ export function ScreenshotInput({ onItemsReady }: ScreenshotInputProps) {
       {/* Tab switcher */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '1rem' }}>
         <button style={TAB_STYLE(tab === 'text')}  onClick={() => setTab('text')}>
-          <ClipboardList size={15} /> Paste Text
+          <ClipboardList size={15} /> {t('pasteTextTab')}
         </button>
         <button style={TAB_STYLE(tab === 'image')} onClick={() => setTab('image')}>
-          <Upload size={15} /> Upload Screenshot
+          <Upload size={15} /> {t('uploadScreenshotTab')}
         </button>
       </div>
 
@@ -77,7 +161,7 @@ export function ScreenshotInput({ onItemsReady }: ScreenshotInputProps) {
       {tab === 'text' && (
         <div>
           <p style={{ margin: '0 0 0.75rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-            In Wurm, open the chest/inventory window, select all (<kbd>Ctrl+A</kbd>) and copy (<kbd>Ctrl+C</kbd>) the item list, then paste it below.
+            {t('pasteTextInstruction')}
           </p>
           <textarea
             rows={6}
@@ -86,7 +170,7 @@ export function ScreenshotInput({ onItemsReady }: ScreenshotInputProps) {
             placeholder={'rare stone chisel, iron    87,00  0,00  0,30  ...\ntrowel, glimmersteel (2x spd)   74,00  2,10  0,10  ...'}
           />
           <button onClick={handleText} style={{ marginTop: '0.75rem', width: '100%', justifyContent: 'center' }}>
-            Parse Inventory List
+            {t('parseInventoryListBtn')}
           </button>
         </div>
       )}
@@ -95,11 +179,12 @@ export function ScreenshotInput({ onItemsReady }: ScreenshotInputProps) {
       {tab === 'image' && (
         <div>
           <p style={{ margin: '0 0 0.75rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-            Take a screenshot of the chest/inventory window and upload it. OCR will extract item names, metals, and QL values.
+            {t('uploadScreenshotInstruction')}
           </p>
           <div
-            onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
-            onDragLeave={() => setIsDragging(false)}
+            onDragEnter={handleDragEnter}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             style={{
               border: `2px dashed ${isDragging ? 'var(--accent-primary)' : 'var(--border-color)'}`,
@@ -107,24 +192,27 @@ export function ScreenshotInput({ onItemsReady }: ScreenshotInputProps) {
               padding: '2.5rem',
               textAlign: 'center',
               color: 'var(--text-secondary)',
-              background: isDragging ? 'rgba(59,130,246,0.05)' : 'var(--bg-panel)',
+              background: isDragging ? 'rgba(212,180,131,0.08)' : 'var(--bg-panel)',
               transition: 'all 0.2s',
               cursor: 'pointer',
             }}
             onClick={() => document.getElementById('ocr-file-input')?.click()}
           >
-            {ocrProgress !== null ? (
-              <div>
-                <Loader size={32} style={{ color: 'var(--accent-primary)', animation: 'spin 1s linear infinite' }} />
-                <div style={{ marginTop: '0.5rem' }}>Running OCR… {ocrProgress}%</div>
-              </div>
-            ) : (
-              <div>
-                <Upload size={32} style={{ marginBottom: '0.5rem', color: 'var(--text-muted)' }} />
-                <div>Drop image here or click to upload</div>
-                <div style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>.png, .jpg, .bmp accepted</div>
-              </div>
-            )}
+            {/* pointerEvents: 'none' solves drag flickering and drop failure when hovering children */}
+            <div style={{ pointerEvents: 'none' }}>
+              {ocrProgress !== null ? (
+                <div>
+                  <Loader size={32} style={{ color: 'var(--accent-primary)', animation: 'spin 1s linear infinite' }} />
+                  <div style={{ marginTop: '0.5rem' }}>{t('runningOcr')} {ocrProgress}%</div>
+                </div>
+              ) : (
+                <div>
+                  <Upload size={32} style={{ marginBottom: '0.5rem', color: isDragging ? 'var(--accent-primary)' : 'var(--text-muted)' }} />
+                  <div>{t('dropZoneText')}</div>
+                  <div style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>{t('acceptedFormats')}</div>
+                </div>
+              )}
+            </div>
           </div>
           <input
             id="ocr-file-input"
@@ -135,7 +223,7 @@ export function ScreenshotInput({ onItemsReady }: ScreenshotInputProps) {
           />
           {ocrRaw && (
             <details style={{ marginTop: '0.75rem' }}>
-              <summary style={{ fontSize: '0.8rem', color: 'var(--text-muted)', cursor: 'pointer' }}>View raw OCR output</summary>
+              <summary style={{ fontSize: '0.8rem', color: 'var(--text-muted)', cursor: 'pointer' }}>{t('viewRawOcr')}</summary>
               <textarea rows={5} value={ocrRaw} readOnly style={{ marginTop: '0.5rem', fontSize: '0.75rem' }} />
             </details>
           )}
@@ -147,18 +235,18 @@ export function ScreenshotInput({ onItemsReady }: ScreenshotInputProps) {
         <div style={{ marginTop: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem', color: '#10b981' }}>
             <CheckCircle size={16} />
-            <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{parsedItems.length} items extracted</span>
+            <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{parsedItems.length} {t('itemsExtracted')}</span>
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', fontSize: '0.8rem', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--border-color)' }}>
-                  <th style={{ textAlign: 'left', padding: '4px 8px' }}>Name</th>
-                  <th style={{ textAlign: 'left', padding: '4px 8px' }}>Metal</th>
-                  <th style={{ textAlign: 'left', padding: '4px 8px' }}>Rarity</th>
-                  <th style={{ textAlign: 'right', padding: '4px 8px' }}>QL</th>
-                  <th style={{ textAlign: 'right', padding: '4px 8px' }}>Dam</th>
-                  <th style={{ textAlign: 'left', padding: '4px 8px' }}>Note</th>
+                  <th style={{ textAlign: 'left', padding: '4px 8px' }}>{t('tblName')}</th>
+                  <th style={{ textAlign: 'left', padding: '4px 8px' }}>{t('tblMetal')}</th>
+                  <th style={{ textAlign: 'left', padding: '4px 8px' }}>{t('tblRarity')}</th>
+                  <th style={{ textAlign: 'right', padding: '4px 8px' }}>{t('tblQL')}</th>
+                  <th style={{ textAlign: 'right', padding: '4px 8px' }}>{t('tblDam')}</th>
+                  <th style={{ textAlign: 'left', padding: '4px 8px' }}>{t('tblNote')}</th>
                 </tr>
               </thead>
               <tbody>
