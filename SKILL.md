@@ -98,6 +98,9 @@ The project is integrated into the **A Guilda** ecosystem:
 
 | Feature | Description |
 |---|---|
+| **Visual Onboarding Banner** | Permanent premium explanatory banner at the top of inputs showing the data crossing flow chart: `Print (QL/Metal) + Log (Runes/Enchants) ➔ Score/Tier`. |
+| **Elevator Pitch Subtitle** | Prominent brand slogan styled with golden left-border directly underneath the beta notice: *"Uma ferramenta inteligente projetada para triar, pontuar e classificar automaticamente suas ferramentas, armas e relíquias runadas..."*. |
+| **Bulk Stack Duplication Fix** | Prevents bulk materials like `small nails (56x)` from generating 56 separate identical rows. Now groups them as a single clean row. |
 | **QuickGuide component** | Collapsible 4-step guide visible on the input screen. EN/PT bilingual via the translation system. Cards for each step with gold left-border accent. |
 | **Parse Examine Log button** | 3-state button: disabled (dim), active-pulsing gold with ⚡ Zap icon, parsed-confirmed green ✅. Resets to active state on textarea change. |
 | **Beta notice banner** | Dashed gold banner persistent at the top of the app to invite feedback. |
@@ -122,6 +125,8 @@ All user-facing strings are stored in `src/data/translations.ts` and accessed vi
 - `analyticsInsights`, `loadingGlobalStats`
 - `statsParserRuns`, `statsItemsEvaluated`
 - `statsTotalRunes`, `statsTotalEnchants`
+- `onboardingTitle`, `onboardingDesc`, `onboardingCol1`, `onboardingCol1Sub`, `onboardingCol2`, `onboardingCol2Sub`, `onboardingCol3`, `onboardingCol3Sub`
+- `appIntroDescription`
 
 ---
 
