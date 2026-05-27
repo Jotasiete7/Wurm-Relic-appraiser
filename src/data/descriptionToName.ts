@@ -99,6 +99,37 @@ export const DESCRIPTION_TO_NAME: Record<string, string> = {
   "a small chest made from planks": "small chest",
   "these thin leather reins, headstall and metal bit should be put on the head of a creature to direct it": "bridle",
   "a heavy knife with a bent blade perfect for butchering": "butchering knife",
+
+  // --- Newly identified plate / chain armour ---
+  "a glove made from small metal plates": "plate gauntlet",
+  "plate armour for the foot, with plenty of space for the toes": "plate sabaton",
+  "a thick helm that only exposes a pair of slits where the eyes are": "great helm",
+  "a sock made from metal chain": "chain boot",
+  "a heavy jacket made from metal chain": "chain jacket",
+  "leg protection made from metal chain": "chain pants",
+  "chains sewn into a cylinder to protect the arms": "chain sleeve",
+  "a heavy chain coif, worn on the head": "chain coif",
+  "a chain glove": "chain gauntlet",
+  "a protection closed completely around the lower arm and secured shut with spring snaps": "plate vambrace",
+  "leather sewn into a cylinder to protect the arms": "leather sleeve",
+
+  // --- Newly identified weapons & components ---
+  "the heavy spiked metal head for a maul": "medium maul head",
+  "a blade for a longsword": "long sword blade",
+  "a large battle axe head": "large battle axe head",
+  "a large battle axe with a wooden shaft": "large battle axe",
+  "a smooth heavy clump of metal on a shaft": "small maul",
+  "a long and slender sword": "sabre",
+  "a small axe head": "small axe head",
+  "a large spiked heavy clump of metal on a shaft": "medium maul",
+  "a large axe head fit for a hatchet": "hatchet head",
+  "a short but sturdy axe with a thick blade specially designed to cut down trees with but poor in combat": "hatchet",
+  "a large heavy sword almost as tall as a ten year old child": "two handed sword",
+
+  // --- Miscellaneous / Containers ---
+  "a backpack made from leather with metal husks": "backpack",
+  "a festive hangable wooden snow flake": "dendrite snowflake",
+  "a clay bowl hardened by fire": "pottery bowl",
 };
 
 /**

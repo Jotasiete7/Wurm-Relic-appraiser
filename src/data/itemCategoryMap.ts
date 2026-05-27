@@ -41,6 +41,7 @@ const categoryMap: Record<string, ItemCategory> = {
   'crossbow': 'weapon',
   'metal staff': 'weapon',
   'staff': 'weapon',
+  'sabre': 'weapon',
 
   // armor
   'helmet': 'armor',
@@ -48,6 +49,17 @@ const categoryMap: Record<string, ItemCategory> = {
   'breastplate': 'armor',
   'leggings': 'armor',
   'gauntlets': 'armor',
+  'plate gauntlet': 'armor',
+  'plate sabaton': 'armor',
+  'great helm': 'armor',
+  'chain boot': 'armor',
+  'chain jacket': 'armor',
+  'chain pants': 'armor',
+  'chain sleeve': 'armor',
+  'chain coif': 'armor',
+  'chain gauntlet': 'armor',
+  'plate vambrace': 'armor',
+  'leather sleeve': 'armor',
   'studded leather glove': 'armor',
   'boots': 'armor',
   'shield': 'armor',
@@ -62,11 +74,18 @@ const categoryMap: Record<string, ItemCategory> = {
   'satchel': 'container',
   'backpack': 'container',
   'toolbelt': 'container',
+  'pottery bowl': 'container',
 
   // tool_misc / other
   'bridle': 'tool_misc',
   'huge sword blade': 'tool_misc',
   'huge axe head': 'tool_misc',
+  'large battle axe head': 'tool_misc',
+  'small axe head': 'tool_misc',
+  'hatchet head': 'tool_misc',
+  'medium maul head': 'tool_misc',
+  'long sword blade': 'tool_misc',
+  'dendrite snowflake': 'tool_misc',
 
   // tool_craft cooking/dairy
   'cake tin': 'tool_craft',
