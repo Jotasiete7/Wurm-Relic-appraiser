@@ -149,6 +149,12 @@ export const TRANSLATIONS = {
     catToolMisc: "Misc. Tools",
     // Learned dictionary
     learnedDictStatus: "Auto-learned items",
+    scoringOpen: "⚖️ Scoring System",
+    scoringSystemTitle: "⚖️ Scoring Criteria Matrix",
+    scoringColMetals: "⛏️ Metals & Rarity",
+    scoringColRunes: "🌀 Key Rune Effects",
+    scoringColEnchants: "✨ Enchants & Skillers",
+    scoringSkillerDesc: "Scores +20 to +90 pts based on the power of the Circle of Cunning enchant.",
   },
   pt: {
     help: "Ajuda",
@@ -300,5 +306,11 @@ export const TRANSLATIONS = {
     catToolMisc: "Ferramentas Diversas",
     // Learned dictionary
     learnedDictStatus: "Itens auto-aprendidos",
+    scoringOpen: "⚖️ Sistema de Pontuação",
+    scoringSystemTitle: "⚖️ Tabela de Critérios de Pontuação",
+    scoringColMetals: "⛏️ Metais & Raridade",
+    scoringColRunes: "🌀 Principais Efeitos de Runas",
+    scoringColEnchants: "✨ Encantamentos & Skiller",
+    scoringSkillerDesc: "Garante de +20 a +90 pts conforme o poder do Circle of Cunning.",
   }
 };
