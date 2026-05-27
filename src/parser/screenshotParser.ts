@@ -8,24 +8,28 @@ const INVENTORY_LINE_RE =
 function parseDecimal(value: string): number {
   // Handle both comma and dot as decimal separator
   let parsed = parseFloat(value.replace(',', '.')) || 0;
-  // If QL/Dam is greater than 100, assume the decimal separator was missed in OCR (e.g. "2946.0" instead of "29.46")
-  if (parsed > 100) {
-    parsed = parsed / 100;
+  // Keep dividing by 10 if it exceeds 100 (OCR missed decimal dot/comma or merged columns)
+  while (parsed > 100) {
+    parsed = parsed / 10;
   }
   return parsed;
 }
 
 function cleanOcrPrefix(name: string): string {
   let cleaned = name.trim();
-  // 1. Strip symbols and single character + symbol combinations from the start
-  cleaned = cleaned.replace(/^[^a-zA-Z0-9\s]*[0-9®+@~=[\]#|»-]+\s*/g, '');
-  // 2. Strip single letter + symbol prefixes like "B® + ", "O = "
-  cleaned = cleaned.replace(/^[a-zA-Z][®+@~=[\]#|»-\s]+\s*/g, '');
-  // 3. Strip single digit prefix followed by space
-  cleaned = cleaned.replace(/^[0-9]\s+/g, '');
-  // 4. Strip any standalone single characters at the beginning followed by spaces and symbols
-  cleaned = cleaned.replace(/^[a-zA-Z0-9]\s+[+~=®-]\s*/g, '');
-  return cleaned;
+  
+  // Strip typical OCR checkbox artifacts at the start:
+  // e.g. "A. ", "Hl ", "§ ", "> ", "/ ", "& ", "Ti ® ", "BI + ", "Be / ", "[=~ ", "@ 2 "
+  // 1. Strip symbols and single character + symbol/punctuation prefixes:
+  cleaned = cleaned.replace(/^[^a-zA-Z0-9\s]*[0-9®+@~=[\]#|»\-&/>§\\•<().]+\s*/g, '');
+  // 2. Strip single/double letter + symbol/punctuation prefixes (like "B® + ", "A. ", "Ti ® ", "Hl ", "Be / "):
+  cleaned = cleaned.replace(/^[a-zA-Z]{1,2}[®+@~=[\]#|»\-&/>§\\•<().\s]+\s*/g, '');
+  // 3. Strip single digits or standalone letters followed by space at the start (like "8 ", "0 ", "7 ", "f "):
+  cleaned = cleaned.replace(/^[0-9a-zA-Z]\s+/g, '');
+  // 4. Strip any leftover symbols/punctuation at the start:
+  cleaned = cleaned.replace(/^[^a-zA-Z0-9\s]+\s*/g, '');
+  
+  return cleaned.trim();
 }
 
 function normalizeItemName(raw: string): string {
