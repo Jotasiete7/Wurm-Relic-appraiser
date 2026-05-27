@@ -409,7 +409,75 @@ function ItemRow({ item, t }: { item: WurmItem; t: (key: any) => string }) {
   );
 }
 
+function generateMarkdownTable(items: WurmItem[], t: (key: any) => string): string {
+  const normalItems = items.filter(i => !i.isSkiller).sort((a, b) => b.score - a.score);
+  const skillerItems = items.filter(i => i.isSkiller).sort((a, b) => b.score - a.score);
+  const sorted = [...normalItems, ...skillerItems];
+
+  let md = `| Tier | ${t('tblHeaderItem')} | ${t('tblMetal')} | ${t('tblQL')} | ${t('tblHeaderRunes')} | ${t('tblHeaderScore')} |\n`;
+  md += `| :--- | :--- | :--- | :---: | :--- | :---: |\n`;
+
+  for (const item of sorted) {
+    const tier = item.tier;
+    const name = toTitleCase(item.normalizedName);
+    const rarity = item.rarity !== 'common' ? ` (${item.rarity})` : '';
+    const metal = item.metal ? toTitleCase(item.metal) : '—';
+    const ql = item.ql != null ? item.ql.toFixed(1) : '?';
+    
+    const runesList = item.runes.map(r => `${toTitleCase(r.metal)} of ${toTitleCase(r.god)}`).join(', ');
+    const enchantsCount = item.enchants.length > 0 ? ` (+${item.enchants.length} enc)` : '';
+    const runesStr = runesList ? `${runesList}${enchantsCount}` : t('noRunesRow');
+    
+    md += `| [**${tier}**] | ${name}${rarity} | ${metal} | ${ql} | ${runesStr} | **${item.score}** |\n`;
+  }
+  return md;
+}
+
+function generateBBCodeTable(items: WurmItem[], t: (key: any) => string): string {
+  const normalItems = items.filter(i => !i.isSkiller).sort((a, b) => b.score - a.score);
+  const skillerItems = items.filter(i => i.isSkiller).sort((a, b) => b.score - a.score);
+  const sorted = [...normalItems, ...skillerItems];
+
+  const colors = {
+    S: '#f59e0b',
+    A: '#a78bfa',
+    B: '#60a5fa',
+    C: '#3b82f6',
+    Trash: '#9ca3af',
+    Skiller: '#10b981',
+  };
+
+  let bb = `[table]\n`;
+  bb += `[tr][th]Tier[/th][th]${t('tblHeaderItem')}[/th][th]${t('tblMetal')}[/th][th]${t('tblQL')}[/th][th]${t('tblHeaderRunes')}[/th][th]${t('tblHeaderScore')}[/th][/tr]\n`;
+
+  for (const item of sorted) {
+    const tierColor = colors[item.tier as keyof typeof colors] || '#ffffff';
+    const name = toTitleCase(item.normalizedName);
+    const rarity = item.rarity !== 'common' ? ` (${toTitleCase(item.rarity)})` : '';
+    const metal = item.metal ? toTitleCase(item.metal) : '-';
+    const ql = item.ql != null ? item.ql.toFixed(1) : '?';
+    
+    const runesList = item.runes.map(r => `${toTitleCase(r.metal)} of ${toTitleCase(r.god)}`).join(', ');
+    const enchantsCount = item.enchants.length > 0 ? ` (+${item.enchants.length} enc)` : '';
+    const runesStr = runesList ? `${runesList}${enchantsCount}` : t('noRunesRow');
+
+    bb += `[tr]`;
+    bb += `[td][b][color=${tierColor}]${item.tier}[/color][/b][/td]`;
+    bb += `[td]${name}${rarity}[/td]`;
+    bb += `[td]${metal}[/td]`;
+    bb += `[td]${ql}[/td]`;
+    bb += `[td]${runesStr}[/td]`;
+    bb += `[td][b]${item.score}[/b][/td]`;
+    bb += `[/tr]\n`;
+  }
+  bb += `[/table]`;
+  return bb;
+}
+
 export function ItemTable({ items, t }: ItemTableProps) {
+  const [mdCopied, setMdCopied] = useState(false);
+  const [bbCopied, setBbCopied] = useState(false);
+
   if (items.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
@@ -422,26 +490,87 @@ export function ItemTable({ items, t }: ItemTableProps) {
   const skillerItems = items.filter(i => i.isSkiller).sort((a, b) => b.score - a.score);
   const sorted = [...normalItems, ...skillerItems];
 
+  const handleCopyMd = () => {
+    const md = generateMarkdownTable(items, t);
+    navigator.clipboard.writeText(md);
+    setMdCopied(true);
+    setTimeout(() => setMdCopied(false), 2000);
+  };
+
+  const handleCopyBb = () => {
+    const bb = generateBBCodeTable(items, t);
+    navigator.clipboard.writeText(bb);
+    setBbCopied(true);
+    setTimeout(() => setBbCopied(false), 2000);
+  };
+
   return (
-    <div style={{ overflowX: 'auto', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr style={{ borderBottom: '2px solid var(--border-color)', background: 'var(--bg-panel)' }}>
-            <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', width: '52px' }}>{t('tblHeaderTier')}</th>
-            <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('tblHeaderItem')}</th>
-            <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('tblMetal')}</th>
-            <th style={{ padding: '10px 8px', textAlign: 'right', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('tblQL')}</th>
-            <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('tblHeaderRunes')}</th>
-            <th style={{ padding: '10px 8px', textAlign: 'right', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('tblHeaderScore')}</th>
-            <th style={{ padding: '10px 8px', textAlign: 'right', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('tblHeaderActions')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sorted.map(item => (
-            <ItemRow key={item.id} item={item} t={t} />
-          ))}
-        </tbody>
-      </table>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      {/* Export Buttons */}
+      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+        <button
+          onClick={handleCopyMd}
+          style={{
+            background: mdCopied ? '#10b981' : 'var(--bg-panel)',
+            border: `1px solid ${mdCopied ? '#10b981' : 'var(--border-color)'}`,
+            color: mdCopied ? '#fff' : 'var(--text-primary)',
+            padding: '6px 14px',
+            fontSize: '0.78rem',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            transition: 'all 0.3s',
+            fontWeight: 600,
+          }}
+        >
+          {mdCopied ? <CheckCircle size={13} /> : <FileText size={13} />}
+          {mdCopied ? t('copied') : t('copyMarkdownBtn')}
+        </button>
+
+        <button
+          onClick={handleCopyBb}
+          style={{
+            background: bbCopied ? '#10b981' : 'var(--bg-panel)',
+            border: `1px solid ${bbCopied ? '#10b981' : 'var(--border-color)'}`,
+            color: bbCopied ? '#fff' : 'var(--text-primary)',
+            padding: '6px 14px',
+            fontSize: '0.78rem',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            transition: 'all 0.3s',
+            fontWeight: 600,
+          }}
+        >
+          {bbCopied ? <CheckCircle size={13} /> : <Layers size={13} />}
+          {bbCopied ? t('copied') : t('copyBBCodeBtn')}
+        </button>
+      </div>
+
+      <div style={{ overflowX: 'auto', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ borderBottom: '2px solid var(--border-color)', background: 'var(--bg-panel)' }}>
+              <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', width: '52px' }}>{t('tblHeaderTier')}</th>
+              <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('tblHeaderItem')}</th>
+              <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('tblMetal')}</th>
+              <th style={{ padding: '10px 8px', textAlign: 'right', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('tblQL')}</th>
+              <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('tblHeaderRunes')}</th>
+              <th style={{ padding: '10px 8px', textAlign: 'right', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('tblHeaderScore')}</th>
+              <th style={{ padding: '10px 8px', textAlign: 'right', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('tblHeaderActions')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map(item => (
+              <ItemRow key={item.id} item={item} t={t} />
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
