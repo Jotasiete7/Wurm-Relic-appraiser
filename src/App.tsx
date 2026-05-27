@@ -235,6 +235,103 @@ export default function App() {
           <div>
             <QuickGuide t={t} />
 
+            {/* Premium Visual Explanatory Header */}
+            <div className="card" style={{
+              background: 'linear-gradient(135deg, rgba(212,180,131,0.06) 0%, rgba(59,130,246,0.03) 100%)',
+              border: '1px solid rgba(212,180,131,0.2)',
+              borderRadius: '12px',
+              padding: '1.5rem',
+              marginBottom: '1.5rem',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              {/* background ornament */}
+              <div style={{
+                position: 'absolute',
+                top: '-40px',
+                right: '-40px',
+                width: '120px',
+                height: '120px',
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(212,180,131,0.08) 0%, rgba(0,0,0,0) 70%)',
+                pointerEvents: 'none'
+              }} />
+
+              <h3 style={{
+                margin: '0 0 0.5rem',
+                fontSize: '1.05rem',
+                fontWeight: 700,
+                color: 'var(--accent-primary)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                {t('onboardingTitle') || "Como o Relic Appraiser funciona?"}
+              </h3>
+              <p style={{
+                margin: '0 0 1.25rem',
+                fontSize: '0.82rem',
+                color: 'var(--text-secondary)',
+                lineHeight: 1.5
+              }}>
+                {t('onboardingDesc') || "Para avaliar relíquias de arqueologia ou ferramentas, precisamos cruzar as propriedades físicas (QL & tipo de metal) com as mágicas (runas & encantamentos). O app combina ambas as fontes automaticamente pelo nome do item!"}
+              </p>
+
+              {/* Data Flow Diagram (SVG/HTML Pure) */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '12px',
+                flexWrap: 'wrap',
+                background: 'rgba(0, 0, 0, 0.2)',
+                padding: '0.85rem 1rem',
+                borderRadius: '8px',
+                border: '1px solid var(--border-color)'
+              }}>
+                <div style={{ textAlign: 'center', minWidth: '130px' }}>
+                  <span style={{ fontSize: '1.3rem' }}>📸</span>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--accent-primary)', marginTop: '3px' }}>
+                    {t('onboardingCol1') || "Print do Baú (OCR)"}
+                  </div>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                    {t('onboardingCol1Sub') || "Dá QL + Metal do Item"}
+                  </div>
+                </div>
+
+                <div style={{ fontSize: '1.1rem', color: 'var(--accent-primary)', opacity: 0.6 }}>➔</div>
+
+                <div style={{ textAlign: 'center', minWidth: '130px' }}>
+                  <span style={{ fontSize: '1.3rem' }}>📋</span>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--accent-primary)', marginTop: '3px' }}>
+                    {t('onboardingCol2') || "Log de Examine (Event)"}
+                  </div>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                    {t('onboardingCol2Sub') || "Dá Runas + Encantos"}
+                  </div>
+                </div>
+
+                <div style={{ fontSize: '1.1rem', color: 'var(--accent-primary)', opacity: 0.6 }}>➔</div>
+
+                <div style={{
+                  textAlign: 'center',
+                  minWidth: '140px',
+                  background: 'rgba(212,180,131,0.08)',
+                  border: '1px dashed rgba(212,180,131,0.3)',
+                  borderRadius: '6px',
+                  padding: '5px 10px'
+                }}>
+                  <span style={{ fontSize: '1.3rem' }}>🏆</span>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--accent-primary)', marginTop: '3px' }}>
+                    {t('onboardingCol3') || "Pontuação & Tier"}
+                  </div>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>
+                    {t('onboardingCol3Sub') || "Rank S, A, B, C ou Trash"}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Two input columns */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
               
