@@ -186,17 +186,18 @@ export function HistoryDashboard({
 
                 <button
                   onClick={() => onDeleteAppraisal(run.id)}
-                  title={t('deleteAppraisalBtn')}
                   style={{
                     background: 'rgba(239, 68, 68, 0.05)',
                     border: '1px solid rgba(239, 68, 68, 0.2)',
                     color: '#ef4444',
-                    padding: '8px',
+                    padding: '8px 14px',
                     borderRadius: '6px',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
+                    gap: '6px',
                     transition: 'all 0.2s',
                   }}
                   onMouseEnter={(e) => {
@@ -209,6 +210,7 @@ export function HistoryDashboard({
                   }}
                 >
                   <Trash2 size={13} />
+                  {t('deleteAppraisalBtn')}
                 </button>
               </div>
 

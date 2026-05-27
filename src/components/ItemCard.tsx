@@ -28,6 +28,38 @@ function toTitleCase(s: string) {
   return s.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1));
 }
 
+function getRuneAbbreviation(god: string, metal: string): string {
+  const g = god.toLowerCase().trim();
+  const m = metal.toLowerCase().trim();
+  
+  let metalAbbr = '';
+  if (m === 'adamantine') metalAbbr = 'A';
+  else if (m === 'brass') metalAbbr = 'B';
+  else if (m === 'bronze') metalAbbr = 'BZ';
+  else if (m === 'copper') metalAbbr = 'C';
+  else if (m === 'glimmersteel') metalAbbr = 'GL';
+  else if (m === 'gold') metalAbbr = 'G';
+  else if (m === 'iron') metalAbbr = 'I';
+  else if (m === 'lead') metalAbbr = 'L';
+  else if (m === 'seryll') metalAbbr = 'S';
+  else if (m === 'silver') metalAbbr = 'SV';
+  else if (m === 'steel') metalAbbr = 'ST';
+  else if (m === 'tin') metalAbbr = 'T';
+  else if (m === 'zinc') metalAbbr = 'Z';
+  else metalAbbr = m.charAt(0).toUpperCase();
+
+  let godAbbr = '';
+  if (g.startsWith('fo')) godAbbr = 'F';
+  else if (g.startsWith('mag')) godAbbr = 'M';
+  else if (g.startsWith('vyn')) godAbbr = 'V';
+  else if (g.startsWith('lib')) godAbbr = 'L';
+  else if (g.startsWith('jac')) godAbbr = 'J';
+  else if (g.startsWith('the scavenger') || g.startsWith('scavenger')) godAbbr = 'S';
+  else godAbbr = g.charAt(0).toUpperCase();
+
+  return `R${metalAbbr}${godAbbr}`;
+}
+
 export function ItemCard({ item, t }: ItemCardProps) {
   const [showScore, setShowScore] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -42,19 +74,34 @@ export function ItemCard({ item, t }: ItemCardProps) {
   };
 
   const copyRename = () => {
-    let txt = "";
-    if (item.tier === 'Skiller') {
-      const metalStr = item.metal ? ` ${item.metal}` : '';
-      const cocEnchant = item.enchants.find(e => e.name.toLowerCase() === 'circle of cunning');
-      const cocPower = cocEnchant ? cocEnchant.power : '';
-      const cocStr = cocPower ? ` coc${cocPower}` : '';
-      txt = `[SKL] ${item.normalizedName}${metalStr}${cocStr}`;
-    } else {
-      const metalStr = item.metal ? ` ${item.metal}` : '';
-      const qlStr    = item.ql != null ? ` ql${Math.floor(item.ql)}` : '';
-      txt = `[${item.tier}] ${item.normalizedName}${metalStr}${qlStr}`;
+    const tier = item.tier === 'Skiller' ? 'SKL' : item.tier;
+    
+    let bestRuneAbbr = '';
+    if (item.scoreBreakdown.effectsScored && item.scoreBreakdown.effectsScored.length > 0) {
+      let maxPoints = -999;
+      let bestEffect = item.scoreBreakdown.effectsScored[0];
+      for (const eff of item.scoreBreakdown.effectsScored) {
+        if (eff.points > maxPoints) {
+          maxPoints = eff.points;
+          bestEffect = eff;
+        }
+      }
+      const parts = bestEffect.runeName.toLowerCase().split(' of ');
+      if (parts.length > 1) {
+        const bestGod = parts[1].trim();
+        const matchingRune = item.runes.find(r => r.god.toLowerCase().trim() === bestGod);
+        if (matchingRune) {
+          bestRuneAbbr = getRuneAbbreviation(matchingRune.god, matchingRune.metal);
+        }
+      }
     }
     
+    if (!bestRuneAbbr && item.runes && item.runes.length > 0) {
+      bestRuneAbbr = getRuneAbbreviation(item.runes[0].god, item.runes[0].metal);
+    }
+    
+    const runePart = bestRuneAbbr ? ` ${bestRuneAbbr}` : '';
+    const txt = `Tier ${tier}${runePart}`;
     navigator.clipboard.writeText(txt);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);

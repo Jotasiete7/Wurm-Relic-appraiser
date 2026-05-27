@@ -5,7 +5,7 @@ import { ExamineInput } from './components/ExamineInput';
 import { ItemTable } from './components/ItemTable';
 import { mergeInputs } from './parser/mergeInputs';
 import { scoreAndTierItems } from './scoring/tierEngine';
-import { Play, RotateCcw, Sparkles, Layers, History, BarChart3 } from 'lucide-react';
+import { Play, RotateCcw } from 'lucide-react';
 import { Header } from './ecossistema-guilda/layout/Header';
 import { LayoutBase } from './ecossistema-guilda/layout/LayoutBase';
 import { useStats } from './hooks/useStats';
@@ -154,7 +154,7 @@ export default function App() {
               borderRadius: 0
             }}
           >
-            <Sparkles size={15} /> {t('newAnalysisTab') || "Nova Análise"}
+            {t('newAnalysisTab') || "⚡ Nova Análise"}
           </button>
           
           <button
@@ -178,8 +178,7 @@ export default function App() {
               borderRadius: 0
             }}
           >
-            <Layers size={15} /> 
-            {t('resultsTab') || "Resultados"}
+            {t('resultsTab') || "📋 Resultados"}
             {items.length > 0 && (
               <span style={{ fontSize: '0.75rem', background: 'rgba(212,180,131,0.15)', color: 'var(--accent-primary)', padding: '1px 6px', borderRadius: '10px' }}>
                 {items.length}
@@ -205,7 +204,7 @@ export default function App() {
               borderRadius: 0
             }}
           >
-            <History size={15} /> {t('historyTab') || "Histórico"}
+            {t('historyTab') || "📜 Histórico"}
             {history.length > 0 && (
               <span style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.06)', color: 'var(--text-secondary)', padding: '1px 6px', borderRadius: '10px' }}>
                 {history.length}
@@ -231,14 +230,14 @@ export default function App() {
               borderRadius: 0
             }}
           >
-            <BarChart3 size={15} /> {t('analyticsTab') || "📊 Analytics"}
+            {t('analyticsTab') || "📊 Analytics"}
           </button>
         </div>
 
         {/* Action bar (results only) */}
         {activeTab === 'results' && (
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem' }}>
-            <button onClick={handleReset} style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-color)', fontSize: '0.875rem' }}>
+            <button onClick={handleReset} style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-color)', fontSize: '0.875rem', padding: '0.5rem 1rem' }}>
               <RotateCcw size={14} /> {t('newAnalysis')}
             </button>
           </div>

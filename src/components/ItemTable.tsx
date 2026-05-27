@@ -23,7 +23,7 @@ const TIER_CONFIG = {
   A:       { icon: Star,          cls: 'tier-a',       label: 'A'       },
   B:       { icon: CheckCircle,   cls: 'tier-b',       label: 'B'       },
   C:       { icon: AlertTriangle, cls: 'tier-c',       label: 'C'       },
-  Trash:   { icon: Trash2,        cls: 'tier-trash',   label: '✕'       },
+  Trash:   { icon: Trash2,        cls: 'tier-trash',   label: 'Trash'   },
   Skiller: { icon: Zap,           cls: 'tier-skiller', label: 'SKL'     },
 };
 
@@ -44,17 +44,67 @@ function toTitleCase(s: string) {
   return s.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1));
 }
 
+function getRuneAbbreviation(god: string, metal: string): string {
+  const g = god.toLowerCase().trim();
+  const m = metal.toLowerCase().trim();
+  
+  let metalAbbr = '';
+  if (m === 'adamantine') metalAbbr = 'A';
+  else if (m === 'brass') metalAbbr = 'B';
+  else if (m === 'bronze') metalAbbr = 'BZ';
+  else if (m === 'copper') metalAbbr = 'C';
+  else if (m === 'glimmersteel') metalAbbr = 'GL';
+  else if (m === 'gold') metalAbbr = 'G';
+  else if (m === 'iron') metalAbbr = 'I';
+  else if (m === 'lead') metalAbbr = 'L';
+  else if (m === 'seryll') metalAbbr = 'S';
+  else if (m === 'silver') metalAbbr = 'SV';
+  else if (m === 'steel') metalAbbr = 'ST';
+  else if (m === 'tin') metalAbbr = 'T';
+  else if (m === 'zinc') metalAbbr = 'Z';
+  else metalAbbr = m.charAt(0).toUpperCase();
+
+  let godAbbr = '';
+  if (g.startsWith('fo')) godAbbr = 'F';
+  else if (g.startsWith('mag')) godAbbr = 'M';
+  else if (g.startsWith('vyn')) godAbbr = 'V';
+  else if (g.startsWith('lib')) godAbbr = 'L';
+  else if (g.startsWith('jac')) godAbbr = 'J';
+  else if (g.startsWith('the scavenger') || g.startsWith('scavenger')) godAbbr = 'S';
+  else godAbbr = g.charAt(0).toUpperCase();
+
+  return `R${metalAbbr}${godAbbr}`;
+}
+
 function copyRenameText(item: WurmItem) {
-  if (item.tier === 'Skiller') {
-    const metalStr = item.metal ? ` ${item.metal}` : '';
-    const cocEnchant = item.enchants.find(e => e.name.toLowerCase() === 'circle of cunning');
-    const cocPower = cocEnchant ? cocEnchant.power : '';
-    const cocStr = cocPower ? ` coc${cocPower}` : '';
-    return `[SKL] ${item.normalizedName}${metalStr}${cocStr}`;
+  const tier = item.tier === 'Skiller' ? 'SKL' : item.tier;
+  
+  let bestRuneAbbr = '';
+  if (item.scoreBreakdown.effectsScored && item.scoreBreakdown.effectsScored.length > 0) {
+    let maxPoints = -999;
+    let bestEffect = item.scoreBreakdown.effectsScored[0];
+    for (const eff of item.scoreBreakdown.effectsScored) {
+      if (eff.points > maxPoints) {
+        maxPoints = eff.points;
+        bestEffect = eff;
+      }
+    }
+    const parts = bestEffect.runeName.toLowerCase().split(' of ');
+    if (parts.length > 1) {
+      const bestGod = parts[1].trim();
+      const matchingRune = item.runes.find(r => r.god.toLowerCase().trim() === bestGod);
+      if (matchingRune) {
+        bestRuneAbbr = getRuneAbbreviation(matchingRune.god, matchingRune.metal);
+      }
+    }
   }
-  const metalStr = item.metal ? ` ${item.metal}` : '';
-  const qlStr    = item.ql != null ? ` ql${Math.floor(item.ql)}` : '';
-  return `[${item.tier}] ${item.normalizedName}${metalStr}${qlStr}`;
+  
+  if (!bestRuneAbbr && item.runes && item.runes.length > 0) {
+    bestRuneAbbr = getRuneAbbreviation(item.runes[0].god, item.runes[0].metal);
+  }
+  
+  const runePart = bestRuneAbbr ? ` ${bestRuneAbbr}` : '';
+  return `Tier ${tier}${runePart}`;
 }
 
 function ItemRow({ item, t }: { item: WurmItem; t: (key: any) => string }) {
@@ -95,7 +145,7 @@ function ItemRow({ item, t }: { item: WurmItem; t: (key: any) => string }) {
         className="item-row"
       >
         {/* Tier badge */}
-        <td style={{ padding: '10px 8px', width: '52px' }}>
+        <td style={{ padding: '10px 8px', width: '80px' }}>
           <span className={`badge ${tier.cls}`} style={{ padding: '3px 8px', gap: '4px', fontSize: '0.75rem', minWidth: '40px', justifyContent: 'center' }}>
             <TierIcon size={11} />
             {tier.label}
@@ -190,6 +240,8 @@ function ItemRow({ item, t }: { item: WurmItem; t: (key: any) => string }) {
                 alignItems: 'center',
                 gap: '4px',
                 transition: 'all 0.3s',
+                width: '85px',
+                justifyContent: 'center',
               }}
             >
               {copied ? <CheckCircle size={11} /> : <Copy size={11} />}
@@ -829,7 +881,7 @@ export function ItemTable({ items, t }: ItemTableProps) {
               {/* Interactive Sort Headers */}
               <th
                 onClick={() => handleSort('tier')}
-                style={{ padding: '10px 8px', textAlign: 'left', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', width: '52px', cursor: 'pointer', userSelect: 'none' }}
+                style={{ padding: '10px 8px', textAlign: 'left', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', width: '80px', cursor: 'pointer', userSelect: 'none' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                   {t('tblHeaderTier')} {renderSortIndicator('tier')}
