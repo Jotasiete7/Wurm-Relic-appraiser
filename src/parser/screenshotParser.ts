@@ -59,7 +59,17 @@ export function parseScreenshotText(rawText: string): ScreenshotItem[] {
     .map(l => l.trim())
     .filter(l => l.length > 0);
 
-  const items: ScreenshotItem[] = [];
+  const rawItems: {
+    line: string;
+    rarity: ItemRarity;
+    nameRaw: string;
+    metal: string | null;
+    qlRaw: string;
+    damRaw: string;
+    noteRaw: string | null;
+    isParent: boolean;
+    count: number;
+  }[] = [];
 
   for (const line of lines) {
     const match = line.match(INVENTORY_LINE_RE);
@@ -89,20 +99,54 @@ export function parseScreenshotText(rawText: string): ScreenshotItem[] {
     }
 
     const count = extractItemCount(noteRaw);
-    for (let i = 0; i < count; i++) {
-      items.push({
-        rawName:        line,
-        normalizedName: normalizeItemName(nameRaw),
-        metal,
-        rarity,
-        ql:             parseDecimal(qlRaw),
-        damage:         parseDecimal(damRaw),
-        playerNote:     noteRaw?.trim() ?? null,
+    const isParent = count > 1;
+
+    rawItems.push({
+      line,
+      rarity,
+      nameRaw,
+      metal,
+      qlRaw,
+      damRaw,
+      noteRaw: noteRaw?.trim() ?? null,
+      isParent,
+      count,
+    });
+  }
+
+  const finalItems: ScreenshotItem[] = [];
+
+  for (const item of rawItems) {
+    const normalizedName = normalizeItemName(item.nameRaw);
+    
+    if (item.isParent) {
+      // Check if there are individual items of the same name and metal in rawItems
+      const hasSubItems = rawItems.some(
+        other => !other.isParent &&
+        normalizeItemName(other.nameRaw) === normalizedName &&
+        other.metal === item.metal
+      );
+      if (hasSubItems) {
+        // Skip the parent item because its sub-items are present individually!
+        continue;
+      }
+    }
+
+    // Add item (duplicate if parent and sub-items are not present)
+    for (let i = 0; i < item.count; i++) {
+      finalItems.push({
+        rawName:        item.line,
+        normalizedName,
+        metal:          item.metal,
+        rarity:         item.rarity,
+        ql:             parseDecimal(item.qlRaw),
+        damage:         parseDecimal(item.damRaw),
+        playerNote:     item.noteRaw,
       });
     }
   }
 
-  return items;
+  return finalItems;
 }
 
 /**

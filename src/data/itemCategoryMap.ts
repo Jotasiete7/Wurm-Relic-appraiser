@@ -28,6 +28,7 @@ const categoryMap: Record<string, ItemCategory> = {
   // tool_craft knives
   'carving knife': 'tool_craft',
   'leather knife': 'tool_craft',
+  'butchering knife': 'tool_craft',
   'knife': 'tool_craft',
 
   // weapon

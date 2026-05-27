@@ -98,6 +98,7 @@ export const DESCRIPTION_TO_NAME: Record<string, string> = {
   "a wooden tube made from planks with a shaft to press in order to separate the whey from the curd, and to press the curd into a mould": "cheese drill",
   "a small chest made from planks": "small chest",
   "these thin leather reins, headstall and metal bit should be put on the head of a creature to direct it": "bridle",
+  "a heavy knife with a bent blade perfect for butchering": "butchering knife",
 };
 
 /**
