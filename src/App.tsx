@@ -104,7 +104,7 @@ export default function App() {
           padding: '0.75rem 1.25rem',
           fontSize: '0.85rem',
           fontWeight: 500,
-          marginBottom: '1.5rem',
+          marginBottom: '1rem',
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
@@ -112,6 +112,20 @@ export default function App() {
         }}>
           {t('betaNotice')}
         </div>
+
+        {/* App Intro Subtitle Elevator Pitch */}
+        <p style={{
+          fontSize: '1rem',
+          color: 'var(--text-secondary)',
+          lineHeight: 1.6,
+          margin: '0 0 2rem 0',
+          fontWeight: 500,
+          letterSpacing: '0.01em',
+          borderLeft: '3px solid var(--accent-primary)',
+          paddingLeft: '12px'
+        }}>
+          {t('appIntroDescription')}
+        </p>
 
         {/* ── TABS NAVIGATION ────────────────────────────────────────────── */}
         <div style={{
