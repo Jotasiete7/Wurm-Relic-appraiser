@@ -80,6 +80,11 @@ export function getRuneEffects(god: string, metal: string): RuneEffect[] {
     'vynora_steel': ['LESS_DAMAGE_TAKEN'],
     'vynora_tin': ['RARITY_CHANCE'],
     'vynora_zinc': ['SPELL'],
+
+    // The Scavenger (Archaeology / Restoration exclusive runes)
+    'the scavenger_lead': ['VOLUME_DECREASE', 'USAGE_SPEED'],
+    'the scavenger_steel': ['LESS_DAMAGE_TAKEN', 'LESS_DECAY'],
+    'the scavenger_adamantine': ['ENCHANT_SUCCESS', 'LESS_DECAY'],
   };
 
   return effects[key] || [];

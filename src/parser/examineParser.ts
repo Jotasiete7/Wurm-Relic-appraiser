@@ -3,7 +3,7 @@ import { getRuneEffects } from '../data/runeEffectMap';
 import { resolveItemName } from '../data/descriptionToName';
 
 const TIMESTAMP_RE = /^\[\d{2}:\d{2}:\d{2}\]\s*/;
-const RUNE_LINE_RE = /^A (\w+) rune of (\w+) has been attached/i;
+const RUNE_LINE_RE = /^An?\s+(\w+)\s+rune\s+of\s+(.+?)\s+has\s+been\s+attached/i;
 const ENCHANT_LINE_RE = /^(.+?) has been cast on it[^[]*\[(\d+)\]/i;
 const MAKER_LINE_RE = /^You can (?:barely|easily) make out the signature of its maker/i;
 const IMBUI_LINE_RE = /^It has been smeared with (?:a|an)?\s*(.+?)(?:,\s*so it improves\s+(.+?)\s+max QL\s*\[(\d+)\]|\.|$)/i;

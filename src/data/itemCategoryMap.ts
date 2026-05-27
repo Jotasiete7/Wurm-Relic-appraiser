@@ -50,14 +50,27 @@ const categoryMap: Record<string, ItemCategory> = {
   'studded leather glove': 'armor',
   'boots': 'armor',
   'shield': 'armor',
+  'large shield': 'armor',
   'shoulder pad': 'armor',
 
   // container
   'barrel': 'container',
   'chest': 'container',
+  'small chest': 'container',
+  'fish keep net': 'container',
   'satchel': 'container',
   'backpack': 'container',
   'toolbelt': 'container',
+
+  // tool_misc / other
+  'bridle': 'tool_misc',
+  'huge sword blade': 'tool_misc',
+  'huge axe head': 'tool_misc',
+
+  // tool_craft cooking/dairy
+  'cake tin': 'tool_craft',
+  'cheese drill': 'tool_craft',
+  'baking stone': 'tool_craft',
 };
 
 export function getItemCategory(itemName: string): ItemCategory | null {
@@ -71,7 +84,7 @@ export function getItemCategory(itemName: string): ItemCategory | null {
 
   // Fallback heuristic: check if word contains key terms
   if (normalized.includes('sword') || normalized.includes('axe') || normalized.includes('maul')) return 'weapon';
-  if (normalized.includes('helmet') || normalized.includes('boot') || normalized.includes('gauntlet')) return 'armor';
+  if (normalized.includes('helmet') || normalized.includes('boot') || normalized.includes('gauntlet') || normalized.includes('shield')) return 'armor';
   
   return null;
 }

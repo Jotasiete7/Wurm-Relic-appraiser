@@ -7,12 +7,46 @@ const INVENTORY_LINE_RE =
 
 function parseDecimal(value: string): number {
   // Handle both comma and dot as decimal separator
-  return parseFloat(value.replace(',', '.')) || 0;
+  let parsed = parseFloat(value.replace(',', '.')) || 0;
+  // If QL/Dam is greater than 100, assume the decimal separator was missed in OCR (e.g. "2946.0" instead of "29.46")
+  if (parsed > 100) {
+    parsed = parsed / 100;
+  }
+  return parsed;
+}
+
+function cleanOcrPrefix(name: string): string {
+  let cleaned = name.trim();
+  // 1. Strip symbols and single character + symbol combinations from the start
+  cleaned = cleaned.replace(/^[^a-zA-Z0-9\s]*[0-9®+@~=[\]#|»-]+\s*/g, '');
+  // 2. Strip single letter + symbol prefixes like "B® + ", "O = "
+  cleaned = cleaned.replace(/^[a-zA-Z][®+@~=[\]#|»-\s]+\s*/g, '');
+  // 3. Strip single digit prefix followed by space
+  cleaned = cleaned.replace(/^[0-9]\s+/g, '');
+  // 4. Strip any standalone single characters at the beginning followed by spaces and symbols
+  cleaned = cleaned.replace(/^[a-zA-Z0-9]\s+[+~=®-]\s*/g, '');
+  return cleaned;
 }
 
 function normalizeItemName(raw: string): string {
-  return raw.toLowerCase().trim()
-    .replace(/\s+/g, ' ');
+  let name = cleanOcrPrefix(raw);
+  
+  const lower = name.toLowerCase().trim();
+  if (lower.endsWith('baking stone') || lower.endsWith('cake tin')) {
+    // Do not strip the suffix
+  } else {
+    // Strip known metals/materials at the end if comma was missed in OCR
+    const materialRegex = /\s+(iron|steel|bronze|silver|gold|lead|tin|zinc|copper|brass|electrum|seryll|adamantine|glimmersteel|leather|cotton|wool|silk|walnut|firwood|oakwood|cedarwood|chestnut|birchwood|willow|maple|pine|yew|linden|ashwood|marble|slate|sandstone|clay|pottery|stone)$/i;
+    name = name.replace(materialRegex, '');
+  }
+
+  return name.toLowerCase().trim().replace(/\s+/g, ' ');
+}
+
+function extractItemCount(note: string | null): number {
+  if (!note) return 1;
+  const match = note.match(/(\d+)\s*x/i) || note.match(/x\s*(\d+)/i);
+  return match ? parseInt(match[1], 10) : 1;
 }
 
 /**
@@ -31,20 +65,41 @@ export function parseScreenshotText(rawText: string): ScreenshotItem[] {
     const match = line.match(INVENTORY_LINE_RE);
     if (!match) continue;
 
-    const [, rarityRaw, nameRaw, metalRaw, noteRaw, qlRaw, damRaw] = match;
+    let [, rarityRaw, nameRaw, metalRaw, noteRaw, qlRaw, damRaw] = match;
 
     const rarity: ItemRarity = (rarityRaw?.toLowerCase() as ItemRarity) || 'common';
-    const metal: string | null = metalRaw ? metalRaw.toLowerCase() : null;
+    
+    // Clean prefix
+    nameRaw = cleanOcrPrefix(nameRaw);
 
-    items.push({
-      rawName:        line,
-      normalizedName: normalizeItemName(nameRaw),
-      metal,
-      rarity,
-      ql:             parseDecimal(qlRaw),
-      damage:         parseDecimal(damRaw),
-      playerNote:     noteRaw?.trim() ?? null,
-    });
+    // If metal is missing in OCR match, try to extract it from the end of nameRaw
+    let metal: string | null = metalRaw ? metalRaw.toLowerCase() : null;
+    if (!metal) {
+      const lowerName = nameRaw.toLowerCase().trim();
+      if (lowerName.endsWith('baking stone') || lowerName.endsWith('cake tin')) {
+        // Do not extract metal from the actual item name
+      } else {
+        const materialRegex = /\s+(iron|steel|bronze|silver|gold|lead|tin|zinc|copper|brass|electrum|seryll|adamantine|glimmersteel|leather|cotton|wool|silk|walnut|firwood|oakwood|cedarwood|chestnut|birchwood|willow|maple|pine|yew|linden|ashwood|marble|slate|sandstone|clay|pottery|stone)$/i;
+        const materialMatch = nameRaw.match(materialRegex);
+        if (materialMatch) {
+          metal = materialMatch[1].toLowerCase();
+          nameRaw = nameRaw.replace(materialRegex, '');
+        }
+      }
+    }
+
+    const count = extractItemCount(noteRaw);
+    for (let i = 0; i < count; i++) {
+      items.push({
+        rawName:        line,
+        normalizedName: normalizeItemName(nameRaw),
+        metal,
+        rarity,
+        ql:             parseDecimal(qlRaw),
+        damage:         parseDecimal(damRaw),
+        playerNote:     noteRaw?.trim() ?? null,
+      });
+    }
   }
 
   return items;

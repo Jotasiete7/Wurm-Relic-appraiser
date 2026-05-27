@@ -81,6 +81,23 @@ export const DESCRIPTION_TO_NAME: Record<string, string> = {
   "rough and clumsy, but pretty sharp scissors": "scissors",
   "a small iron needle": "needle",
   "a small metal needle": "needle",
+
+  // --- Missing restored / archaeological items ---
+  "a tool for working the fields": "rake",
+  "a long pole with a half meter long sharp blade, used for cutting grass or harvesting crops": "scythe",
+  "a net that is used to hold fish caught, whilst fishing, to keep them fresh": "fish keep net",
+  "a huge axe with a heavy head and a wooden shaft": "huge axe",
+  "a huge axe head": "huge axe head",
+  "a blade for a giant sword": "huge sword blade",
+  "a sword with a blade the length of an underarm": "short sword",
+  "a large heavy shield hammered from a metal sheet": "large shield",
+  "a tool for digging": "shovel",
+  "a tool for mining": "pickaxe",
+  "a flat stone surface used for baking food": "baking stone",
+  "a circular tin used to make cakes in": "cake tin",
+  "a wooden tube made from planks with a shaft to press in order to separate the whey from the curd, and to press the curd into a mould": "cheese drill",
+  "a small chest made from planks": "small chest",
+  "these thin leather reins, headstall and metal bit should be put on the head of a creature to direct it": "bridle",
 };
 
 /**
