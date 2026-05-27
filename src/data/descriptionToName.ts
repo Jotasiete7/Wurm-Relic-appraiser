@@ -125,11 +125,21 @@ export const DESCRIPTION_TO_NAME: Record<string, string> = {
   "a large axe head fit for a hatchet": "hatchet head",
   "a short but sturdy axe with a thick blade specially designed to cut down trees with but poor in combat": "hatchet",
   "a large heavy sword almost as tall as a ten year old child": "two handed sword",
+  "a short but sturdy axe with a thick blade": "small axe",
 
   // --- Miscellaneous / Containers ---
   "a backpack made from leather with metal husks": "backpack",
   "a festive hangable wooden snow flake": "dendrite snowflake",
   "a clay bowl hardened by fire": "pottery bowl",
+  "a clay planter hardened by fire": "pottery planter",
+  "a wooden construction made from planks with a large wooden screw connected to a shaft": "press",
+  "a large fork": "fork",
+  "a large cutlery knife": "cutlery knife",
+  "a large spoon": "spoon",
+  "a kitchen utensil used primarily to measure the volume of liquid ingredients such as milk": "measuring jug",
+  "a small iron box with wick and a canister for oil": "lantern",
+  "a kind of small hand-held scythe with a crescent-moon formed blade": "sickle",
+  "greaves for the lower part of the legs, a cuisse for the upper part, joined by a poleyne covering the knee": "plate leggings",
 };
 
 /**

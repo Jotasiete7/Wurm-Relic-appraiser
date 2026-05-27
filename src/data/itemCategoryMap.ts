@@ -13,6 +13,11 @@ const categoryMap: Record<string, ItemCategory> = {
   'trowel': 'tool_craft', // archaeology tool
   'metal brush': 'tool_craft', // archaeology tool
   'hatchet': 'tool_craft', // Explicitly tool_craft per 2022 patch
+  'press': 'tool_craft',
+  'fork': 'tool_craft',
+  'cutlery knife': 'tool_craft',
+  'spoon': 'tool_craft',
+  'measuring jug': 'tool_craft',
 
   // tool_mining
   'pickaxe': 'tool_mining',
@@ -60,6 +65,7 @@ const categoryMap: Record<string, ItemCategory> = {
   'chain gauntlet': 'armor',
   'plate vambrace': 'armor',
   'leather sleeve': 'armor',
+  'plate leggings': 'armor',
   'studded leather glove': 'armor',
   'boots': 'armor',
   'shield': 'armor',
@@ -75,6 +81,7 @@ const categoryMap: Record<string, ItemCategory> = {
   'backpack': 'container',
   'toolbelt': 'container',
   'pottery bowl': 'container',
+  'pottery planter': 'container',
 
   // tool_misc / other
   'bridle': 'tool_misc',
@@ -86,6 +93,7 @@ const categoryMap: Record<string, ItemCategory> = {
   'medium maul head': 'tool_misc',
   'long sword blade': 'tool_misc',
   'dendrite snowflake': 'tool_misc',
+  'lantern': 'tool_misc',
 
   // tool_craft cooking/dairy
   'cake tin': 'tool_craft',

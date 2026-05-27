@@ -22,6 +22,8 @@ function isDescriptionLine(line: string): boolean {
   if (IMBUI_LINE_RE.test(line)) return false;
   if (SKIP_LINE_RE.test(line)) return false;
   // Description lines in Wurm start with a capital letter.
+  // Any line starting with "You " is a player perception line, not an item description.
+  if (/^You /i.test(line)) return false;
   // We removed the A/An/The requirement because tools like Carving Knife start with "Made for carving"
   // and Scissors start with "Rough and clumsy". We also lowered length to 10 for "A small iron needle".
   return /^[A-Z]/i.test(line) && line.length > 10;
