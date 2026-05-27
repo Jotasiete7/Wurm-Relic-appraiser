@@ -54,6 +54,13 @@ const MOCK_GLOBAL_STATS: GlobalStats = {
 export function StatsCard({ stats, onReset, t }: StatsCardProps) {
   const [viewMode, setViewMode] = useState<'session' | 'global'>('session');
   const [showConfirm, setShowConfirm] = useState(false);
+
+  // Revert confirmation state automatically after 4 seconds
+  useEffect(() => {
+    if (!showConfirm) return;
+    const timer = setTimeout(() => setShowConfirm(false), 4000);
+    return () => clearTimeout(timer);
+  }, [showConfirm]);
   
   // Global stats state
   const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null);
@@ -242,7 +249,6 @@ export function StatsCard({ stats, onReset, t }: StatsCardProps) {
               )}
               <button 
                 onClick={handleResetClick}
-                onMouseLeave={() => setShowConfirm(false)}
                 style={{ 
                   background: showConfirm ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255,255,255,0.03)', 
                   border: `1px solid ${showConfirm ? '#ef4444' : 'var(--border-color)'}`,

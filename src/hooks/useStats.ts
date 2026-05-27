@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { WurmItem } from '../types';
 
 export interface WurmStats {
@@ -51,37 +51,34 @@ export function useStats() {
     } catch (e) {
       console.error("Failed to load stats from localStorage", e);
     }
-    return DEFAULT_STATS;
+    return { ...DEFAULT_STATS, tierCounts: { ...DEFAULT_STATS.tierCounts } };
   });
 
-  const saveStats = useCallback((updateFn: (prev: WurmStats) => WurmStats) => {
-    setStats(prev => {
-      const next = updateFn(prev);
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch (e) {
-        console.error("Failed to save stats to localStorage", e);
-      }
-      return next;
-    });
-  }, []);
+  // Persist to localStorage cleanly and purely on state change
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
+    } catch (e) {
+      console.error("Failed to save stats to localStorage", e);
+    }
+  }, [stats]);
 
   const incrementScreenshots = useCallback(() => {
-    saveStats(prev => ({
+    setStats(prev => ({
       ...prev,
       screenshotsProcessed: prev.screenshotsProcessed + 1
     }));
-  }, [saveStats]);
+  }, []);
 
   const incrementExamineLogs = useCallback(() => {
-    saveStats(prev => ({
+    setStats(prev => ({
       ...prev,
       examineLogsProcessed: prev.examineLogsProcessed + 1
     }));
-  }, [saveStats]);
+  }, []);
 
   const recordAnalysisRun = useCallback((items: WurmItem[]) => {
-    saveStats(prev => {
+    setStats(prev => {
       const newTierCounts = { ...prev.tierCounts };
       for (const item of items) {
         const tier = item.tier;
@@ -96,11 +93,24 @@ export function useStats() {
         tierCounts: newTierCounts
       };
     });
-  }, [saveStats]);
+  }, []);
 
   const resetStats = useCallback(() => {
-    saveStats(() => DEFAULT_STATS);
-  }, [saveStats]);
+    setStats({
+      totalRuns: 0,
+      screenshotsProcessed: 0,
+      examineLogsProcessed: 0,
+      tierCounts: {
+        S: 0,
+        A: 0,
+        B: 0,
+        C: 0,
+        Trash: 0,
+        Skiller: 0
+      },
+      totalItems: 0
+    });
+  }, []);
 
   return {
     stats,
