@@ -37,8 +37,13 @@ export function ScreenshotInput({
       if (items.length > 0) {
         onScreenshotProcessed?.();
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('[OCR Error] Failed to process screenshot:', err);
+      const errStr = String(err?.message || err || '');
+      if (errStr.includes('Failed to fetch dynamically imported module')) {
+        console.warn('[OCR] Dynamic import error detected. Reloading page to fetch the latest assets...');
+        window.location.reload();
+      }
     } finally {
       setIsEnhancing(false);
       setOcrProgress(null);
