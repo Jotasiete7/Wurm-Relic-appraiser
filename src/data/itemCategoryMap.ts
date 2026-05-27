@@ -47,6 +47,7 @@ const categoryMap: Record<string, ItemCategory> = {
   'metal staff': 'weapon',
   'staff': 'weapon',
   'sabre': 'weapon',
+  'large maul': 'weapon',
 
   // armor
   'helmet': 'armor',
@@ -94,6 +95,9 @@ const categoryMap: Record<string, ItemCategory> = {
   'long sword blade': 'tool_misc',
   'dendrite snowflake': 'tool_misc',
   'lantern': 'tool_misc',
+  'rake blade': 'tool_misc',
+  'trowel blade': 'tool_misc',
+  'saddle': 'tool_misc',
 
   // tool_craft cooking/dairy
   'cake tin': 'tool_craft',

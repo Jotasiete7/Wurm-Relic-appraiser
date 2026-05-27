@@ -122,6 +122,7 @@ export const DESCRIPTION_TO_NAME: Record<string, string> = {
   "a long and slender sword": "sabre",
   "a small axe head": "small axe head",
   "a large spiked heavy clump of metal on a shaft": "medium maul",
+  "a huge spiked heavy clump of metal on a shaft": "large maul",
   "a large axe head fit for a hatchet": "hatchet head",
   "a short but sturdy axe with a thick blade specially designed to cut down trees with but poor in combat": "hatchet",
   "a large heavy sword almost as tall as a ten year old child": "two handed sword",
@@ -140,6 +141,10 @@ export const DESCRIPTION_TO_NAME: Record<string, string> = {
   "a small iron box with wick and a canister for oil": "lantern",
   "a kind of small hand-held scythe with a crescent-moon formed blade": "sickle",
   "greaves for the lower part of the legs, a cuisse for the upper part, joined by a poleyne covering the knee": "plate leggings",
+  "a saw, good for creating and sawing planks": "saw",
+  "a thin blade for a rake": "rake blade",
+  "a flat, faintly pointed broad blade used to smooth out mortar on bricks and sift through dirt and rocks": "trowel blade",
+  "a leather saddle complete with a girth and stirrups": "saddle",
 };
 
 /**
