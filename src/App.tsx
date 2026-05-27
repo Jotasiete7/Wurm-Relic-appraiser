@@ -1,11 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { WurmItem, ScreenshotItem, ExamineEntry } from './types';
 import { ScreenshotInput } from './components/ScreenshotInput';
 import { ExamineInput } from './components/ExamineInput';
 import { ItemTable } from './components/ItemTable';
 import { mergeInputs } from './parser/mergeInputs';
 import { scoreAndTierItems } from './scoring/tierEngine';
-import { Play, RotateCcw, Sparkles, Layers, History } from 'lucide-react';
+import { Play, RotateCcw, Sparkles, Layers, History, BarChart3 } from 'lucide-react';
 import { Header } from './ecossistema-guilda/layout/Header';
 import { LayoutBase } from './ecossistema-guilda/layout/LayoutBase';
 import { useStats } from './hooks/useStats';
@@ -16,8 +16,10 @@ import { QuickGuide } from './components/QuickGuide';
 import { useHistory } from './hooks/useHistory';
 import type { SavedAppraisal } from './hooks/useHistory';
 import { HistoryDashboard } from './components/HistoryDashboard';
+import { AnalyticsDashboard } from './components/AnalyticsDashboard';
+import { loadCommunityDictionary } from './utils/communityDictionary';
 
-type Tab = 'input' | 'results' | 'history';
+type Tab = 'input' | 'results' | 'history' | 'analytics';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('input');
@@ -35,6 +37,11 @@ export default function App() {
     recordAnalysisRun,
     resetStats
   } = useStats();
+
+  // Load community dictionary on mount (single Supabase call, cached 24h)
+  useEffect(() => {
+    loadCommunityDictionary();
+  }, []);
 
   const handleAnalyze = useCallback(() => {
     if (ssItems.length === 0 && examineEntries.length === 0) return;
@@ -191,6 +198,27 @@ export default function App() {
               </span>
             )}
           </button>
+
+          <button
+            onClick={() => setActiveTab('analytics')}
+            style={{
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === 'analytics' ? '2px solid var(--accent-primary)' : '2px solid transparent',
+              color: activeTab === 'analytics' ? 'var(--accent-primary)' : 'var(--text-muted)',
+              padding: '0.75rem 0.5rem',
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: '0.95rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s',
+              borderRadius: 0
+            }}
+          >
+            <BarChart3 size={15} /> {t('analyticsTab') || "📊 Analytics"}
+          </button>
         </div>
 
         {/* Action bar (results only) */}
@@ -320,6 +348,11 @@ export default function App() {
             onClearHistory={clearHistory}
             t={t}
           />
+        )}
+
+        {/* ── TAB 4: ANALYTICS DASHBOARD ──────────────────────────────────── */}
+        {activeTab === 'analytics' && (
+          <AnalyticsDashboard t={t} />
         )}
 
         {/* Persistent Statistics Dashboard */}

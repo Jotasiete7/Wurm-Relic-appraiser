@@ -7,7 +7,37 @@ const RUNE_LINE_RE = /^An?\s+(\w+)\s+rune\s+of\s+(.+?)\s+has\s+been\s+attached/i
 const ENCHANT_LINE_RE = /^(.+?) has been cast on it[^[]*\[(\d+)\]/i;
 const MAKER_LINE_RE = /^You can (?:barely|easily) make out the signature of its maker/i;
 const IMBUI_LINE_RE = /^It has been smeared with (?:a|an)?\s*(.+?)(?:,\s*so it improves\s+(.+?)\s+max QL\s*\[(\d+)\]|\.|$)/i;
-const SKIP_LINE_RE = /^(Colors:|It is imbued|It could be improved|You need to)/i;
+const SKIP_LINE_RE = /^(Colors:|It is imbued|It could be improved)/i;
+
+// ── Heuristic patterns for extracting item name from repair/improvement lines ──
+const HEURISTIC_PATTERNS: RegExp[] = [
+  // "You need to polish the trowel with a pelt"
+  /(?:polish|temper|sharpen|improve|punch|file)\s+the\s+([a-zA-Z][a-zA-Z\s-]{1,30}?)\s+(?:with|by|to|using)/i,
+  // "The saddle needs some holes punched"  /  "The hatchet needs to be sharpened"
+  /^(?:The|This)\s+([a-zA-Z][a-zA-Z\s-]{1,30}?)\s+(?:needs|has some|must be|is in need|could be)/i,
+  // "You need to temper the longsword"  (no trailing preposition)
+  /(?:polish|temper|sharpen|improve|punch|file)\s+the\s+([a-zA-Z][a-zA-Z\s-]{1,30})$/i,
+];
+
+/**
+ * Attempt to extract the item name from context lines using repair/improvement phrases.
+ * These lines typically appear after the description and reveal the exact item name.
+ */
+function extractNameFromContextLines(contextLines: string[]): string | null {
+  for (const line of contextLines) {
+    for (const pattern of HEURISTIC_PATTERNS) {
+      const match = line.match(pattern);
+      if (match) {
+        const candidate = match[1].trim().toLowerCase();
+        // Filter out clearly wrong matches (too short, or common false positives)
+        if (candidate.length >= 3 && !['it', 'the', 'this', 'that', 'them'].includes(candidate)) {
+          return candidate;
+        }
+      }
+    }
+  }
+  return null;
+}
 
 const RARITY_CHECKS: { pattern: RegExp; rarity: ItemRarity }[] = [
   { pattern: /very rare and interesting/i, rarity: 'rare'      },
@@ -44,14 +74,33 @@ export function parseExamineLog(logText: string): ExamineEntry[] {
 
   const entries: ExamineEntry[] = [];
   let current: ExamineEntry | null = null;
+  let currentContextLines: string[] = []; // lines in the current block for heuristic
 
   function flush() {
-    if (current) entries.push(current);
+    if (current) {
+      // ── Heuristic pass: if the item is still unknown, try extracting from context lines ──
+      if (current.normalizedName === 'unknown' && currentContextLines.length > 0) {
+        const heuristicName = extractNameFromContextLines(currentContextLines);
+        if (heuristicName) {
+          current.normalizedName = heuristicName;
+          console.log(`%c[Parser Heuristic] Resolvido: "${current.descriptionRaw.slice(0, 50)}..." → "${heuristicName}"`, 'color: #f59e0b; font-style: italic;');
+        }
+      }
+      entries.push(current);
+    }
     current = null;
+    currentContextLines = [];
   }
 
   for (const line of lines) {
-    if (SKIP_LINE_RE.test(line)) continue;
+    if (SKIP_LINE_RE.test(line)) {
+      // Still collect "You need to" lines for heuristic — they're skipped from parsing
+      // but contain valuable item name hints
+      if (/^You need to/i.test(line)) {
+        currentContextLines.push(line);
+      }
+      continue;
+    }
 
     if (isDescriptionLine(line)) {
       flush();
@@ -69,6 +118,9 @@ export function parseExamineLog(logText: string): ExamineEntry[] {
     }
 
     if (!current) continue;
+
+    // Collect all lines in block for heuristic analysis
+    currentContextLines.push(line);
 
     // Maker signature
     if (MAKER_LINE_RE.test(line)) {
@@ -136,3 +188,5 @@ export function parseExamineLog(logText: string): ExamineEntry[] {
     e.enchants.length > 0
   );
 }
+
+

@@ -121,6 +121,25 @@ export const TRANSLATIONS = {
     loadingGlobalStats: "Loading global statistics from database...",
     statsTotalRunes: "Runes Cataloged",
     statsTotalEnchants: "Enchants Evaluated",
+    // Analytics Dashboard
+    analyticsTab: "📊 Analytics",
+    analyticsTitle: "📊 Global Statistics",
+    analyticsSubtitle: "Aggregated data from all community analyses",
+    analyticsTierDist: "Tier Distribution",
+    analyticsRuneDist: "Rune Deities",
+    analyticsCatDist: "Item Categories",
+    analyticsInsights: "💡 Community Insights",
+    analyticsTotalItems: "Total Items",
+    // Category display names
+    catToolCraft: "Tools",
+    catWeapon: "Weapons",
+    catArmor: "Armor",
+    catContainer: "Containers",
+    catToolMining: "Mining",
+    catToolGather: "Gathering",
+    catToolMisc: "Misc. Tools",
+    // Learned dictionary
+    learnedDictStatus: "Auto-learned items",
   },
   pt: {
     help: "Ajuda",
@@ -244,5 +263,24 @@ export const TRANSLATIONS = {
     loadingGlobalStats: "Conectando ao banco de dados...",
     statsTotalRunes: "Runas Catalogadas",
     statsTotalEnchants: "Encantamentos",
+    // Analytics Dashboard
+    analyticsTab: "📊 Analytics",
+    analyticsTitle: "📊 Estatísticas Globais",
+    analyticsSubtitle: "Dados agregados de todas as análises da comunidade",
+    analyticsTierDist: "Distribuição de Tiers",
+    analyticsRuneDist: "Divindades das Runas",
+    analyticsCatDist: "Categorias de Itens",
+    analyticsInsights: "💡 Insights da Comunidade",
+    analyticsTotalItems: "Total de Itens",
+    // Category display names
+    catToolCraft: "Ferramentas",
+    catWeapon: "Armas",
+    catArmor: "Armaduras",
+    catContainer: "Containers",
+    catToolMining: "Mineração",
+    catToolGather: "Coleta",
+    catToolMisc: "Ferramentas Diversas",
+    // Learned dictionary
+    learnedDictStatus: "Itens auto-aprendidos",
   }
 };

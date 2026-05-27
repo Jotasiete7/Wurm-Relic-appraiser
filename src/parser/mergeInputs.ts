@@ -3,6 +3,8 @@ import type {
   ItemCategory, ItemRarity,
 } from '../types';
 import { getItemCategory } from '../data/itemCategoryMap';
+import { learnMapping } from '../utils/learnedDictionary';
+import { reportMappingToServer } from '../utils/communityDictionary';
 
 let _idCounter = 0;
 function genId(): string {
@@ -130,6 +132,20 @@ export function mergeInputs(
       dataSource:     examineEntry ? 'merged' : 'screenshot_only',
       descriptionRaw: examineEntry?.descriptionRaw,
     };
+
+    // ── Auto-learning: if examine was 'unknown' but screenshot gave us the real name,
+    //    learn the description→name mapping for future sessions ──
+    if (
+      examineEntry &&
+      examineEntry.descriptionRaw &&
+      ss.normalizedName &&
+      ss.normalizedName !== 'unknown'
+    ) {
+      // Learn locally (localStorage)
+      learnMapping(examineEntry.descriptionRaw, ss.normalizedName);
+      // Report to Supabase for community benefit (fire-and-forget)
+      reportMappingToServer(examineEntry.descriptionRaw, ss.normalizedName);
+    }
 
     result.push(item);
   }

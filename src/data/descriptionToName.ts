@@ -8,6 +8,9 @@
  * To add new items: examine an unknown item in-game, copy the first sentence
  * of its description, and add it here.
  */
+import { lookupCommunity } from '../utils/communityDictionary';
+import { lookupLearned } from '../utils/learnedDictionary';
+
 export const DESCRIPTION_TO_NAME: Record<string, string> = {
   // --- Mining / Stone ---
   "a straight tool with a strong hard blade made for cutting stone": "stone chisel",
@@ -149,8 +152,12 @@ export const DESCRIPTION_TO_NAME: Record<string, string> = {
 
 /**
  * Resolves an item name from a full description line.
- * Extracts the first sentence (up to first period) and looks it up.
- * Returns null if not found.
+ * Uses a 3-layer lookup strategy:
+ *   1. Static dictionary (hardcoded in code)
+ *   2. Community dictionary (crowdsourced from Supabase, cached 24h)
+ *   3. Locally learned dictionary (from screenshot+examine merges in localStorage)
+ *
+ * Returns null if not found in any layer.
  */
 export function resolveItemName(descriptionLine: string): string | null {
   // Extract first sentence: everything up to the first period
@@ -158,5 +165,22 @@ export function resolveItemName(descriptionLine: string): string | null {
   if (!firstSentenceMatch) return null;
 
   const firstSentence = firstSentenceMatch[1].toLowerCase().trim();
-  return DESCRIPTION_TO_NAME[firstSentence] ?? null;
+
+  // Layer 1: Static dictionary (code)
+  const staticResult = DESCRIPTION_TO_NAME[firstSentence];
+  if (staticResult) return staticResult;
+
+  // Layer 2: Community dictionary (Supabase crowd-sourced, cached in memory)
+  try {
+    const communityResult = lookupCommunity(descriptionLine);
+    if (communityResult) return communityResult;
+  } catch { /* not loaded yet — skip */ }
+
+  // Layer 3: Locally learned dictionary (localStorage)
+  try {
+    const learnedResult = lookupLearned(descriptionLine);
+    if (learnedResult) return learnedResult;
+  } catch { /* fallback — skip */ }
+
+  return null;
 }
