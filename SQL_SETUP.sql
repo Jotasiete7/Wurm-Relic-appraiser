@@ -95,3 +95,53 @@ CREATE INDEX IF NOT EXISTS idx_items_rarity ON public.appraised_items(rarity);
 CREATE INDEX IF NOT EXISTS idx_items_maker ON public.appraised_items(maker);
 CREATE INDEX IF NOT EXISTS idx_runes_god ON public.item_runes(god);
 CREATE INDEX IF NOT EXISTS idx_enchants_name ON public.item_enchants(name);
+
+-- =====================================================================
+-- FUNÇÕES DE AGREGAS E METRICAS GLOBAIS (SECURITY DEFINER)
+-- Permite leitura de totais estatísticos agregados sem expor dados brutos.
+-- =====================================================================
+
+-- 1. Distribuição de Tiers Geral
+CREATE OR REPLACE FUNCTION public.get_global_tier_stats()
+RETURNS TABLE (tier TEXT, item_count BIGINT, percentage NUMERIC)
+SECURITY DEFINER AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+      ai.tier,
+      count(*) as item_count,
+      round(count(*) * 100.0 / nullif((SELECT count(*) FROM public.appraised_items), 0), 1) as percentage
+  FROM public.appraised_items ai
+  GROUP BY ai.tier;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 2. Frequência de Runas por Divindade Geral
+CREATE OR REPLACE FUNCTION public.get_global_rune_stats()
+RETURNS TABLE (god TEXT, rune_count BIGINT, percentage NUMERIC)
+SECURITY DEFINER AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+      ir.god,
+      count(*) as rune_count,
+      round(count(*) * 100.0 / nullif((SELECT count(*) FROM public.item_runes), 0), 1) as percentage
+  FROM public.item_runes ir
+  GROUP BY ir.god;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 3. Resumo de Métricas de Análise Geral
+CREATE OR REPLACE FUNCTION public.get_global_summary_stats()
+RETURNS TABLE (total_runs BIGINT, total_items BIGINT, total_runes BIGINT, total_enchants BIGINT)
+SECURITY DEFINER AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+      (SELECT count(*) FROM public.appraisals) as total_runs,
+      (SELECT count(*) FROM public.appraised_items) as total_items,
+      (SELECT count(*) FROM public.item_runes) as total_runes,
+      (SELECT count(*) FROM public.item_enchants) as total_enchants;
+END;
+$$ LANGUAGE plpgsql;
+

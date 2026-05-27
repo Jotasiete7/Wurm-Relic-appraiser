@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { ScreenshotItem } from '../types';
 import { parseScreenshotImage } from '../parser/screenshotParser';
+import { preprocessImage } from '../utils/imagePreprocess';
 import { Upload, Loader, CheckCircle } from 'lucide-react';
 
 interface ScreenshotInputProps {
@@ -16,20 +17,30 @@ export function ScreenshotInput({
 }: ScreenshotInputProps) {
   const [parsedItems, setParsedItems] = useState<ScreenshotItem[]>([]);
   const [ocrProgress, setOcrProgress] = useState<number | null>(null);
+  const [isEnhancing, setIsEnhancing] = useState(false);
   const [ocrRaw, setOcrRaw] = useState('');
   const [isDragging, setIsDragging] = useState(false);
 
   const runOcr = useCallback(async (file: File) => {
+    setIsEnhancing(true);
     setOcrProgress(0);
     try {
-      const { items, rawOcrText } = await parseScreenshotImage(file, setOcrProgress);
+      // 1. Run Canvas-level scaling & contrast pre-processing
+      const enhancedFile = await preprocessImage(file);
+      setIsEnhancing(false);
+      
+      // 2. Perform OCR text recognition
+      const { items, rawOcrText } = await parseScreenshotImage(enhancedFile, setOcrProgress);
       setOcrRaw(rawOcrText);
       setParsedItems(items);
       onItemsReady(items);
       if (items.length > 0) {
         onScreenshotProcessed?.();
       }
+    } catch (err) {
+      console.error('[OCR Error] Failed to process screenshot:', err);
     } finally {
+      setIsEnhancing(false);
       setOcrProgress(null);
     }
   }, [onItemsReady, onScreenshotProcessed]);
@@ -141,10 +152,12 @@ export function ScreenshotInput({
         >
           {/* pointerEvents: 'none' solves drag flickering and drop failure when hovering children */}
           <div style={{ pointerEvents: 'none' }}>
-            {ocrProgress !== null ? (
+            {ocrProgress !== null || isEnhancing ? (
               <div>
                 <Loader size={32} style={{ color: 'var(--accent-primary)', animation: 'spin 1s linear infinite' }} />
-                <div style={{ marginTop: '0.5rem' }}>{t('runningOcr')} {ocrProgress}%</div>
+                <div style={{ marginTop: '0.5rem' }}>
+                  {isEnhancing ? t('enhancingImage') : `${t('runningOcr')} ${ocrProgress}%`}
+                </div>
               </div>
             ) : (
               <div>

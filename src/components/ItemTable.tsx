@@ -1,7 +1,17 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { WurmItem } from '../types';
-import { Copy, ChevronDown, ChevronUp, Crown, Star, CheckCircle, AlertTriangle, Trash2, Image, FileText, Layers, Zap } from 'lucide-react';
+import { Copy, ChevronDown, ChevronUp, Crown, Star, CheckCircle, AlertTriangle, Trash2, Image, FileText, Layers, Zap, Search } from 'lucide-react';
 import { EFFECT_DISPLAY_NAMES } from '../data/effectDisplayNames';
+
+const CATEGORY_NAMES: Record<string, { en: string; pt: string }> = {
+  tool_craft: { en: 'Craft Tools', pt: 'Ferramentas de Craft' },
+  tool_mining: { en: 'Mining Tools', pt: 'Ferramentas de Mineração' },
+  tool_gather: { en: 'Gathering Tools', pt: 'Ferramentas de Coleta' },
+  tool_misc: { en: 'Misc Tools', pt: 'Ferramentas Diversas' },
+  weapon: { en: 'Weapons', pt: 'Armas' },
+  armor: { en: 'Armor', pt: 'Armaduras' },
+  container: { en: 'Containers', pt: 'Recipientes' },
+};
 
 interface ItemTableProps {
   items: WurmItem[];
@@ -478,6 +488,19 @@ export function ItemTable({ items, t }: ItemTableProps) {
   const [mdCopied, setMdCopied] = useState(false);
   const [bbCopied, setBbCopied] = useState(false);
 
+  // Filter and Sort states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTier, setSelectedTier] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedRune, setSelectedRune] = useState<string>('all');
+  const [sortField, setSortField] = useState<'score' | 'ql' | 'name' | 'tier' | 'rarity' | 'metal'>('score');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+
+  // Detect current language to localize category names
+  // A simple heuristic based on the translation hook or current key resolution
+  const isPt = t('newAnalysis') === 'Nova Análise';
+  const langKey = isPt ? 'pt' : 'en';
+
   if (items.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
@@ -486,26 +509,273 @@ export function ItemTable({ items, t }: ItemTableProps) {
     );
   }
 
-  const normalItems = items.filter(i => !i.isSkiller).sort((a, b) => b.score - a.score);
-  const skillerItems = items.filter(i => i.isSkiller).sort((a, b) => b.score - a.score);
-  const sorted = [...normalItems, ...skillerItems];
+  // 1. Get unique Runes & Categories dynamically from current haul for exact filtering
+  const uniqueRunes = useMemo(() => {
+    const runes = new Set<string>();
+    items.forEach(item => {
+      item.runes.forEach(r => {
+        runes.add(`${r.metal} of ${r.god}`);
+      });
+    });
+    return Array.from(runes).sort();
+  }, [items]);
+
+  const uniqueCategories = useMemo(() => {
+    return Array.from(new Set(items.map(item => item.category))).sort();
+  }, [items]);
+
+  // 2. Filter list of items
+  const filteredItems = useMemo(() => {
+    return items.filter(item => {
+      // A. Text Search
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const matchesName = item.normalizedName.toLowerCase().includes(query);
+        const matchesNote = item.playerNote?.toLowerCase().includes(query) ?? false;
+        const matchesMaker = item.maker?.toLowerCase().includes(query) ?? false;
+        const matchesMetal = item.metal?.toLowerCase().includes(query) ?? false;
+        if (!matchesName && !matchesNote && !matchesMaker && !matchesMetal) {
+          return false;
+        }
+      }
+
+      // B. Tier Filter
+      if (selectedTier !== 'all' && item.tier !== selectedTier) {
+        return false;
+      }
+
+      // C. Category Filter
+      if (selectedCategory !== 'all' && item.category !== selectedCategory) {
+        return false;
+      }
+
+      // D. Rune Filter
+      if (selectedRune !== 'all') {
+        const hasRune = item.runes.some(r => `${r.metal} of ${r.god}` === selectedRune);
+        if (!hasRune) return false;
+      }
+
+      return true;
+    });
+  }, [items, searchQuery, selectedTier, selectedCategory, selectedRune]);
+
+  // 3. Sort list of items
+  const sortedItems = useMemo(() => {
+    const list = [...filteredItems];
+    
+    const tierRanks: Record<string, number> = { S: 5, A: 4, B: 3, C: 2, Trash: 1, Skiller: 6 };
+    const rarityRanks: Record<string, number> = { fantastic: 4, supreme: 3, rare: 2, common: 1 };
+
+    list.sort((a, b) => {
+      let valA: any = a[sortField as keyof typeof a];
+      let valB: any = b[sortField as keyof typeof b];
+
+      // Handle custom properties
+      if (sortField === 'name') {
+        valA = a.normalizedName;
+        valB = b.normalizedName;
+      } else if (sortField === 'tier') {
+        valA = tierRanks[a.tier] || 0;
+        valB = tierRanks[b.tier] || 0;
+      } else if (sortField === 'rarity') {
+        valA = rarityRanks[a.rarity] || 0;
+        valB = rarityRanks[b.rarity] || 0;
+      } else if (sortField === 'ql') {
+        valA = a.ql ?? -1;
+        valB = b.ql ?? -1;
+      } else if (sortField === 'metal') {
+        valA = a.metal ?? '';
+        valB = b.metal ?? '';
+      }
+
+      if (valA === valB) return 0;
+      
+      const comparison = valA > valB ? 1 : -1;
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    return list;
+  }, [filteredItems, sortField, sortDirection]);
+
+  const handleSort = (field: typeof sortField) => {
+    if (sortField === field) {
+      // Toggle direction
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc'); // Default to descending on new fields
+    }
+  };
 
   const handleCopyMd = () => {
-    const md = generateMarkdownTable(items, t);
+    const md = generateMarkdownTable(sortedItems, t);
     navigator.clipboard.writeText(md);
     setMdCopied(true);
     setTimeout(() => setMdCopied(false), 2000);
   };
 
   const handleCopyBb = () => {
-    const bb = generateBBCodeTable(items, t);
+    const bb = generateBBCodeTable(sortedItems, t);
     navigator.clipboard.writeText(bb);
     setBbCopied(true);
     setTimeout(() => setBbCopied(false), 2000);
   };
 
+  // Helper to render sort icon indicators
+  const renderSortIndicator = (field: typeof sortField) => {
+    if (sortField !== field) return null;
+    return sortDirection === 'asc' ? <ChevronUp size={12} style={{ marginLeft: '4px' }} /> : <ChevronDown size={12} style={{ marginLeft: '4px' }} />;
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      
+      {/* ── ADVANCED FILTERS PANEL ────────────────────────────────────────── */}
+      <div className="card" style={{
+        background: 'var(--bg-panel)',
+        border: '1px solid var(--border-color)',
+        padding: '1.25rem',
+        borderRadius: '8px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px'
+      }}>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+          
+          {/* Search Input */}
+          <div style={{ flex: '1 1 250px', position: 'relative' }}>
+            <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+            <input
+              type="text"
+              placeholder={t('searchPlaceholder') || "Buscar item, maker, nota…"}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '8px 12px 8px 36px',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '6px',
+                color: 'var(--text-primary)',
+                fontSize: '0.85rem',
+                outline: 'none',
+                transition: 'border-color 0.2s'
+              }}
+              onFocus={(e) => e.currentTarget.style.borderColor = 'var(--accent-primary)'}
+              onBlur={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}
+            />
+          </div>
+
+          {/* Tier Dropdown */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>Tier:</span>
+            <select
+              value={selectedTier}
+              onChange={(e) => setSelectedTier(e.target.value)}
+              style={{
+                padding: '8px 24px 8px 12px',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '6px',
+                color: 'var(--text-primary)',
+                fontSize: '0.82rem',
+                cursor: 'pointer',
+                outline: 'none'
+              }}
+            >
+              <option value="all">{t('filterAll') || "Todos"}</option>
+              <option value="S">Tier S</option>
+              <option value="A">Tier A</option>
+              <option value="B">Tier B</option>
+              <option value="C">Tier C</option>
+              <option value="Skiller">Skiller</option>
+              <option value="Trash">Trash</option>
+            </select>
+          </div>
+
+          {/* Category Dropdown */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>{t('tblMetal') === 'Metal' ? 'Category:' : 'Categoria:'}</span>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              style={{
+                padding: '8px 24px 8px 12px',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '6px',
+                color: 'var(--text-primary)',
+                fontSize: '0.82rem',
+                cursor: 'pointer',
+                outline: 'none',
+                textTransform: 'capitalize'
+              }}
+            >
+              <option value="all">{t('filterAll') || "Todas"}</option>
+              {uniqueCategories.map(cat => (
+                <option key={cat} value={cat}>
+                  {CATEGORY_NAMES[cat]?.[langKey] || cat}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Rune Dropdown */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>Runa:</span>
+            <select
+              value={selectedRune}
+              onChange={(e) => setSelectedRune(e.target.value)}
+              style={{
+                padding: '8px 24px 8px 12px',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '6px',
+                color: 'var(--text-primary)',
+                fontSize: '0.82rem',
+                cursor: 'pointer',
+                outline: 'none',
+                textTransform: 'capitalize'
+              }}
+            >
+              <option value="all">{t('filterAll') || "Todas"}</option>
+              {uniqueRunes.map(rune => (
+                <option key={rune} value={rune}>{rune}</option>
+              ))}
+            </select>
+          </div>
+
+        </div>
+
+        {/* Dynamic status line for filtering */}
+        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+          <span>
+            {t('filteringResults') || "Exibindo"} <strong>{sortedItems.length}</strong> {t('of') || "de"} <strong>{items.length}</strong> {t('statsItemPlural')}.
+          </span>
+          {(searchQuery || selectedTier !== 'all' || selectedCategory !== 'all' || selectedRune !== 'all') && (
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedTier('all');
+                setSelectedCategory('all');
+                setSelectedRune('all');
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--accent-primary)',
+                cursor: 'pointer',
+                padding: 0,
+                fontSize: '0.75rem',
+                fontWeight: 600
+              }}
+            >
+              [ {t('clearFilters') || "Limpar Filtros"} ]
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Export Buttons */}
       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
         <button
@@ -551,23 +821,78 @@ export function ItemTable({ items, t }: ItemTableProps) {
         </button>
       </div>
 
+      {/* Item Table Grid */}
       <div style={{ overflowX: 'auto', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ borderBottom: '2px solid var(--border-color)', background: 'var(--bg-panel)' }}>
-              <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', width: '52px' }}>{t('tblHeaderTier')}</th>
-              <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('tblHeaderItem')}</th>
-              <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('tblMetal')}</th>
-              <th style={{ padding: '10px 8px', textAlign: 'right', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('tblQL')}</th>
-              <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('tblHeaderRunes')}</th>
-              <th style={{ padding: '10px 8px', textAlign: 'right', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('tblHeaderScore')}</th>
-              <th style={{ padding: '10px 8px', textAlign: 'right', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('tblHeaderActions')}</th>
+              {/* Interactive Sort Headers */}
+              <th
+                onClick={() => handleSort('tier')}
+                style={{ padding: '10px 8px', textAlign: 'left', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', width: '52px', cursor: 'pointer', userSelect: 'none' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  {t('tblHeaderTier')} {renderSortIndicator('tier')}
+                </div>
+              </th>
+              
+              <th
+                onClick={() => handleSort('name')}
+                style={{ padding: '10px 8px', textAlign: 'left', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer', userSelect: 'none' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  {t('tblHeaderItem')} {renderSortIndicator('name')}
+                </div>
+              </th>
+              
+              <th
+                onClick={() => handleSort('metal')}
+                style={{ padding: '10px 8px', textAlign: 'left', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer', userSelect: 'none' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  {t('tblMetal')} {renderSortIndicator('metal')}
+                </div>
+              </th>
+              
+              <th
+                onClick={() => handleSort('ql')}
+                style={{ padding: '10px 8px', textAlign: 'right', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer', userSelect: 'none' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                  {t('tblQL')} {renderSortIndicator('ql')}
+                </div>
+              </th>
+              
+              <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', userSelect: 'none' }}>
+                {t('tblHeaderRunes')}
+              </th>
+              
+              <th
+                onClick={() => handleSort('score')}
+                style={{ padding: '10px 8px', textAlign: 'right', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer', userSelect: 'none' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                  {t('tblHeaderScore')} {renderSortIndicator('score')}
+                </div>
+              </th>
+              
+              <th style={{ padding: '10px 8px', textAlign: 'right', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', width: '120px' }}>
+                {t('tblHeaderActions')}
+              </th>
             </tr>
           </thead>
           <tbody>
-            {sorted.map(item => (
-              <ItemRow key={item.id} item={item} t={t} />
-            ))}
+            {sortedItems.length === 0 ? (
+              <tr>
+                <td colSpan={7} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                  {t('noItemsMatchingFilters') || "Nenhum item corresponde aos filtros aplicados."}
+                </td>
+              </tr>
+            ) : (
+              sortedItems.map(item => (
+                <ItemRow key={item.id} item={item} t={t} />
+              ))
+            )}
           </tbody>
         </table>
       </div>

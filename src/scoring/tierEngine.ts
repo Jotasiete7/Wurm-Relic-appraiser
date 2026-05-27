@@ -35,9 +35,9 @@ function getEnchantPoints(name: string, power: number, category: string): number
   
   if (!matchesCategory) return 0;
   
-  if (power >= 110) return 20;
-  if (power >= 100) return 12;
-  if (power >= 90) return 5;
+  if (power >= 100) return 20;
+  if (power >= 95) return 15;
+  if (power >= 90) return 10;
   return 0;
 }
 

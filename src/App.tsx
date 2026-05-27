@@ -5,7 +5,7 @@ import { ExamineInput } from './components/ExamineInput';
 import { ItemTable } from './components/ItemTable';
 import { mergeInputs } from './parser/mergeInputs';
 import { scoreAndTierItems } from './scoring/tierEngine';
-import { Play, RotateCcw } from 'lucide-react';
+import { Play, RotateCcw, Sparkles, Layers, History } from 'lucide-react';
 import { Header } from './ecossistema-guilda/layout/Header';
 import { LayoutBase } from './ecossistema-guilda/layout/LayoutBase';
 import { useStats } from './hooks/useStats';
@@ -13,16 +13,20 @@ import { StatsCard } from './components/StatsCard';
 import { useLanguage } from './hooks/useLanguage';
 import { logAppraisalToDatabase } from './services/statsLogger';
 import { QuickGuide } from './components/QuickGuide';
+import { useHistory } from './hooks/useHistory';
+import type { SavedAppraisal } from './hooks/useHistory';
+import { HistoryDashboard } from './components/HistoryDashboard';
 
-type Step = 'input' | 'results';
+type Tab = 'input' | 'results' | 'history';
 
 export default function App() {
-  const [step, setStep] = useState<Step>('input');
+  const [activeTab, setActiveTab] = useState<Tab>('input');
   const [ssItems, setSsItems] = useState<ScreenshotItem[]>([]);
   const [examineEntries, setExamineEntries] = useState<ExamineEntry[]>([]);
   const [items, setItems] = useState<WurmItem[]>([]);
 
   const { lang, changeLanguage, t } = useLanguage();
+  const { history, saveAppraisal, deleteAppraisal, clearHistory } = useHistory();
 
   const {
     stats,
@@ -37,7 +41,14 @@ export default function App() {
     const merged = mergeInputs(ssItems, examineEntries);
     const scored = scoreAndTierItems(merged);
     setItems(scored);
-    setStep('results');
+    
+    // Auto-save to Local History
+    const timeStr = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    const dateStr = new Date().toLocaleDateString(undefined, { month: '2-digit', day: '2-digit' });
+    const runName = `Análise de ${scored.length} itens (${dateStr} ${timeStr})`;
+    saveAppraisal(runName, scored, ssItems.length > 0, examineEntries.length > 0);
+
+    setActiveTab('results');
     recordAnalysisRun(scored);
 
     // Enviar dados estatísticos anonimizados em segundo plano para o Supabase (ou simulação local)
@@ -46,14 +57,22 @@ export default function App() {
       hasExamine: examineEntries.length > 0,
       lang,
     });
-  }, [ssItems, examineEntries, recordAnalysisRun, lang]);
+  }, [ssItems, examineEntries, recordAnalysisRun, lang, saveAppraisal]);
 
   const handleReset = () => {
     setSsItems([]);
     setExamineEntries([]);
     setItems([]);
-    setStep('input');
+    setActiveTab('input');
   };
+
+  const handleLoadAppraisal = useCallback((saved: SavedAppraisal) => {
+    setItems(saved.items);
+    // Clear current input states to signify we are viewing restored history items
+    setSsItems([]);
+    setExamineEntries([]);
+    setActiveTab('results');
+  }, []);
 
   const canAnalyze = ssItems.length > 0 || examineEntries.length > 0;
 
@@ -87,11 +106,95 @@ export default function App() {
           {t('betaNotice')}
         </div>
 
-        {/* Quick Guide — always visible on input step */}
-        {step === 'input' && <QuickGuide t={t} />}
+        {/* ── TABS NAVIGATION ────────────────────────────────────────────── */}
+        <div style={{
+          display: 'flex',
+          borderBottom: '1px solid var(--border-color)',
+          marginBottom: '2rem',
+          gap: '1.5rem',
+          overflowX: 'auto',
+          scrollbarWidth: 'none'
+        }}>
+          <button
+            onClick={() => setActiveTab('input')}
+            style={{
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === 'input' ? '2px solid var(--accent-primary)' : '2px solid transparent',
+              color: activeTab === 'input' ? 'var(--accent-primary)' : 'var(--text-muted)',
+              padding: '0.75rem 0.5rem',
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: '0.95rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s',
+              borderRadius: 0
+            }}
+          >
+            <Sparkles size={15} /> {t('newAnalysisTab') || "Nova Análise"}
+          </button>
+          
+          <button
+            onClick={() => items.length > 0 && setActiveTab('results')}
+            disabled={items.length === 0}
+            style={{
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === 'results' ? '2px solid var(--accent-primary)' : '2px solid transparent',
+              color: items.length === 0 
+                ? 'rgba(255,255,255,0.1)' 
+                : activeTab === 'results' ? 'var(--accent-primary)' : 'var(--text-muted)',
+              padding: '0.75rem 0.5rem',
+              cursor: items.length === 0 ? 'not-allowed' : 'pointer',
+              fontWeight: 600,
+              fontSize: '0.95rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s',
+              borderRadius: 0
+            }}
+          >
+            <Layers size={15} /> 
+            {t('resultsTab') || "Resultados"}
+            {items.length > 0 && (
+              <span style={{ fontSize: '0.75rem', background: 'rgba(212,180,131,0.15)', color: 'var(--accent-primary)', padding: '1px 6px', borderRadius: '10px' }}>
+                {items.length}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('history')}
+            style={{
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === 'history' ? '2px solid var(--accent-primary)' : '2px solid transparent',
+              color: activeTab === 'history' ? 'var(--accent-primary)' : 'var(--text-muted)',
+              padding: '0.75rem 0.5rem',
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: '0.95rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s',
+              borderRadius: 0
+            }}
+          >
+            <History size={15} /> {t('historyTab') || "Histórico"}
+            {history.length > 0 && (
+              <span style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.06)', color: 'var(--text-secondary)', padding: '1px 6px', borderRadius: '10px' }}>
+                {history.length}
+              </span>
+            )}
+          </button>
+        </div>
 
         {/* Action bar (results only) */}
-        {step === 'results' && (
+        {activeTab === 'results' && (
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem' }}>
             <button onClick={handleReset} style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-color)', fontSize: '0.875rem' }}>
               <RotateCcw size={14} /> {t('newAnalysis')}
@@ -99,14 +202,17 @@ export default function App() {
           </div>
         )}
 
-        {/* Input step */}
-        {step === 'input' && (
+        {/* ── TAB 1: INPUT STEP ──────────────────────────────────────────── */}
+        {activeTab === 'input' && (
           <div>
+            <QuickGuide t={t} />
+
             {/* Two input columns */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
-              {/* Step 1 */}
-              <div className="card">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
+              
+              {/* Step 1 Card */}
+              <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: ssItems.length > 0 ? '#10b981' : 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', fontWeight: 700, color: '#fff', flexShrink: 0 }}>
                     1
                   </div>
@@ -127,9 +233,9 @@ export default function App() {
                 />
               </div>
 
-              {/* Step 2 */}
-              <div className="card">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.25rem' }}>
+              {/* Step 2 Card */}
+              <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: examineEntries.length > 0 ? '#10b981' : 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', fontWeight: 700, color: '#fff', flexShrink: 0 }}>
                     2
                   </div>
@@ -180,8 +286,8 @@ export default function App() {
           </div>
         )}
 
-        {/* Results step */}
-        {step === 'results' && (
+        {/* ── TAB 2: RESULTS STEP ────────────────────────────────────────── */}
+        {activeTab === 'results' && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
               <h2 style={{ margin: 0 }}>
@@ -203,6 +309,17 @@ export default function App() {
             </div>
             <ItemTable items={items} t={t} />
           </div>
+        )}
+
+        {/* ── TAB 3: APPRAISAL HISTORY STEP ──────────────────────────────── */}
+        {activeTab === 'history' && (
+          <HistoryDashboard
+            history={history}
+            onLoadAppraisal={handleLoadAppraisal}
+            onDeleteAppraisal={deleteAppraisal}
+            onClearHistory={clearHistory}
+            t={t}
+          />
         )}
 
         {/* Persistent Statistics Dashboard */}
