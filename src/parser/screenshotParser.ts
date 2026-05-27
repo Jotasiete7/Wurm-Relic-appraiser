@@ -136,18 +136,16 @@ export function parseScreenshotText(rawText: string): ScreenshotItem[] {
       }
     }
 
-    // Add item (duplicate if parent and sub-items are not present)
-    for (let i = 0; i < item.count; i++) {
-      finalItems.push({
-        rawName:        item.line,
-        normalizedName,
-        metal:          item.metal,
-        rarity:         item.rarity,
-        ql:             parseDecimal(item.qlRaw),
-        damage:         parseDecimal(item.damRaw),
-        playerNote:     item.noteRaw,
-      });
-    }
+    // Add a single item representing the stack (do not duplicate to prevent UI lag, database bloat, and hitting the 200-item safety limit)
+    finalItems.push({
+      rawName:        item.line,
+      normalizedName,
+      metal:          item.metal,
+      rarity:         item.rarity,
+      ql:             parseDecimal(item.qlRaw),
+      damage:         parseDecimal(item.damRaw),
+      playerNote:     item.noteRaw,
+    });
   }
 
   return finalItems;
