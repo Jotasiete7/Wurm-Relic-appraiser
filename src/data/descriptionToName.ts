@@ -50,6 +50,7 @@ export const DESCRIPTION_TO_NAME: Record<string, string> = {
   "an axe with a wooden shaft": "axe",
   "a hatchet with a wooden shaft": "hatchet",
   "a spear with a wooden shaft": "spear",
+  "a sturdy spear": "spear",
   "a large maul with a wooden shaft": "maul",
   "a shiny metal staff etched with decorations that works as a weapon itself but which may be fitted with a blade for that little extra punch": "metal staff",
   "a staff with a wooden shaft and metal tip": "staff",
@@ -159,6 +160,10 @@ export const DESCRIPTION_TO_NAME: Record<string, string> = {
  *
  * Returns null if not found in any layer.
  */
+function cleanRarityFromName(name: string): string {
+  return name.replace(/^(rare|supreme|fantastic)\s+/i, '').trim();
+}
+
 export function resolveItemName(descriptionLine: string): string | null {
   // Extract first sentence: everything up to the first period
   const firstSentenceMatch = descriptionLine.match(/^([^.]+)/);
@@ -166,21 +171,29 @@ export function resolveItemName(descriptionLine: string): string | null {
 
   const firstSentence = firstSentenceMatch[1].toLowerCase().trim();
 
+  let result: string | null = null;
+
   // Layer 1: Static dictionary (code)
   const staticResult = DESCRIPTION_TO_NAME[firstSentence];
-  if (staticResult) return staticResult;
-
-  // Layer 2: Community dictionary (Supabase crowd-sourced, cached in memory)
-  try {
-    const communityResult = lookupCommunity(descriptionLine);
-    if (communityResult) return communityResult;
-  } catch { /* not loaded yet — skip */ }
+  if (staticResult) {
+    result = staticResult;
+  } else {
+    // Layer 2: Community dictionary (Supabase crowd-sourced, cached in memory)
+    try {
+      const communityResult = lookupCommunity(descriptionLine);
+      if (communityResult) {
+        result = communityResult;
+      }
+    } catch { /* not loaded yet — skip */ }
+  }
 
   // Layer 3: Locally learned dictionary (localStorage)
-  try {
-    const learnedResult = lookupLearned(descriptionLine);
-    if (learnedResult) return learnedResult;
-  } catch { /* fallback — skip */ }
+  if (!result) {
+    try {
+      const learnedResult = lookupLearned(descriptionLine);
+      if (learnedResult) result = learnedResult;
+    } catch { /* fallback — skip */ }
+  }
 
-  return null;
+  return result ? cleanRarityFromName(result) : null;
 }

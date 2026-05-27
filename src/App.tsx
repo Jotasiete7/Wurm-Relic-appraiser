@@ -33,10 +33,8 @@ export default function App() {
   const {
     stats,
     incrementScreenshots,
-    incrementExamineLogs,
-    recordAnalysisRun,
-    resetStats
-  } = useStats();
+    incrementExamineLogs
+  } = useStats(history);
 
   // Load community dictionary on mount (single Supabase call, cached 24h)
   useEffect(() => {
@@ -56,7 +54,6 @@ export default function App() {
     saveAppraisal(runName, scored, ssItems.length > 0, examineEntries.length > 0);
 
     setActiveTab('results');
-    recordAnalysisRun(scored);
 
     // Enviar dados estatísticos anonimizados em segundo plano para o Supabase (ou simulação local)
     logAppraisalToDatabase(scored, {
@@ -64,7 +61,7 @@ export default function App() {
       hasExamine: examineEntries.length > 0,
       lang,
     });
-  }, [ssItems, examineEntries, recordAnalysisRun, lang, saveAppraisal]);
+  }, [ssItems, examineEntries, lang, saveAppraisal]);
 
   const handleReset = () => {
     setSsItems([]);
@@ -466,7 +463,7 @@ export default function App() {
         )}
 
         {/* Persistent Statistics Dashboard */}
-        <StatsCard stats={stats} onReset={resetStats} t={t} />
+        <StatsCard stats={stats} onReset={clearHistory} t={t} />
       </div>
     </LayoutBase>
   );

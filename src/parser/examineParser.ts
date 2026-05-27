@@ -79,8 +79,8 @@ export function parseExamineLog(logText: string): ExamineEntry[] {
   function flush() {
     if (current) {
       // ── Heuristic pass: if the item is still unknown, try extracting from context lines ──
-      if (current.normalizedName === 'unknown' && currentContextLines.length > 0) {
-        const heuristicName = extractNameFromContextLines(currentContextLines);
+      if (current.normalizedName === 'unknown') {
+        const heuristicName = extractNameFromContextLines([current.descriptionRaw, ...currentContextLines]);
         if (heuristicName) {
           current.normalizedName = heuristicName;
           console.log(`%c[Parser Heuristic] Resolvido: "${current.descriptionRaw.slice(0, 50)}..." → "${heuristicName}"`, 'color: #f59e0b; font-style: italic;');
