@@ -36,6 +36,9 @@ The `maker` field (item creator name from examine log) is now propagated through
 ### 2.5 Imbui / Ointment Parsing
 The examine parser now fully extracts oil-of-the-blacksmith type imbuis from examine lines, including skill name and QL of the ointment applied. These are stored as `WurmImbui[]` per item.
 
+### 2.6 Contextual Heuristic Resolution (Repair Line Heuristic)
+When an item is initially marked as "unknown", the parser scans contextual lines within the examine block for actions like `polish`, `temper`, `sharpen`, `improve`, or `repair` (e.g., *"You polish the iron trowel"*, *"You sharpen the hatchet"*). It extracts the item name directly from these repair sentences, resolving the item with 0 database cost.
+
 ---
 
 ## 3. Scoring Engine
@@ -74,6 +77,9 @@ Implemented a real-time community analytics backend:
   - `score BETWEEN 0 AND 10000` constraint
   - GRANT INSERT to public role (anonymous insert only — no SELECT, UPDATE, DELETE)
 - **New publishable key fix:** The new Supabase `sb_publishable_` key format is not a JWT. A custom global `fetch` interceptor strips the `Authorization: Bearer` header (which would cause a 401 JWTSignatureError) for all requests, relying solely on the `apikey` header.
+- **Community Dictionary Backend:** Added a relational table `community_mappings` and secure Postgres RPCs:
+  - `get_community_dictionary()` to fetch all mappings validated with 3+ votes in a single lookup on app startup.
+  - `report_learned_mapping(p_description, p_name)` to automatically register new description-to-name correlations from player screenshots.
 
 ---
 
@@ -111,3 +117,29 @@ All user-facing strings are stored in `src/data/translations.ts` and accessed vi
 - `guideTip3Title` / `guideTip3Body`
 - `guideTip4Title` / `guideTip4Body`
 - `guideClose`, `guideOpen`
+- `analyticsTab`, `analyticsTitle`, `analyticsSubtitle`
+- `analyticsTierDist`, `analyticsRuneDist`, `analyticsCatDist`
+- `analyticsInsights`, `loadingGlobalStats`
+- `statsParserRuns`, `statsItemsEvaluated`
+- `statsTotalRunes`, `statsTotalEnchants`
+
+---
+
+## 8. Auto-Learning Mappings (3 Layers)
+
+To systematically solve the problem of "unknown" items without overwhelming the database, the app implements a 3-layer look-up and feedback loop:
+
+1. **Layer 1: Contextual Heuristic** — Uses line-based parsing on actions (e.g. `polish the trowel`) to extract the exact item name in client-side memory.
+2. **Layer 2: Local Learned Dictionary** — Uses `localStorage` to save successful matches between Screenshot OCR names and initially "unknown" Examine Log descriptions. Features an LRU eviction strategy capped at 500 entries.
+3. **Layer 3: Community Dictionary** — Downloads crowdsourced mappings from Supabase on app load (cached 24h) and reports new locally learned mappings in the background via non-blocking RPC calls.
+
+---
+
+## 9. Pure SVG Analytics Dashboard
+
+A visual, state-of-the-art dashboard built to showcase community statistics without external dependencies:
+
+- **Key Performance Metrics:** Responsive cards showing overall runs, items, runes, and enchants cataloged.
+- **Donut Chart:** Built completely in SVG circle mathematics (`stroke-dasharray` / `stroke-dashoffset`) to display animated tier distributions (S, A, B, C, Trash, Skiller).
+- **Horizontal Bar Charts:** Pure SVG/HTML visual progress bars representing Rune Deities frequency and Item Categories distribution.
+- **Smart Insights:** Custom analyzer script that auto-generates community text takeaways based on loaded server data.

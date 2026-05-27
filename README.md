@@ -41,13 +41,15 @@ You paste or screenshot your **chest/inventory window**, examine all items in-ga
 | **Dual-input fusion** | Merges screenshot OCR + examine log text by item name |
 | **Fuzzy matching** | Bidirectional substring fallback handles heavy OCR noise (`rarefile` → `file`) |
 | **Resilient parsing** | Ignores inventory state chars (`+`, `-`, `~`, `»`), handles non-article descriptions |
+| **Auto-Learning Unknowns** | Solves "unknown" item descriptions automatically via contextual repair line heuristics, local learned dictionary (localStorage), and crowdsourced database mappings |
 | **Scoring engine** | Rune type × power, enchant power tiers, moonmetal bonus, rarity bonus |
 | **Tier ranking** | S / A / B / C / Trash / Skiller tiers with color-coded badges |
 | **Copy Rename** | One-click tag copy for in-game renaming |
 | **Imbui tracking** | Detects oil-of-the-blacksmith ointment effects from examine log |
 | **Maker tracking** | Captures item creator name from examine log |
+| **Analytics Dashboard** | Full-fledged community analytics tab displaying KPIs and pure animated SVG charts (Donut tier distributions, God Runes, and Categories) |
 | **Session stats** | Live Tier distribution, parser run counters, screenshot/log counts |
-| **Global DB** | Anonymous community statistics stored in Supabase (no images, no identity) |
+| **Global DB** | Anonymous community statistics & crowdsourced mappings stored in Supabase (no images, no identity) |
 | **EN / PT bilingual** | Full translation of all UI strings via `useLanguage()` hook |
 | **Quick Guide** | Collapsible 4-step onboarding guide with best practice tips |
 
@@ -61,7 +63,7 @@ You paste or screenshot your **chest/inventory window**, examine all items in-ga
 | Styling | Vanilla CSS + CSS Custom Properties (guild design tokens) |
 | OCR | Tesseract.js (offline, browser-native) |
 | Icons | Lucide React |
-| Database | Supabase (PostgreSQL) — anonymous insert only |
+| Database | Supabase (PostgreSQL) — community dictionary and statistics RPCs |
 | Hosting | Cloudflare Pages (auto-deploy from GitHub main) |
 | Ecosystem | A Guilda shared components (`Header`, `LayoutBase`, `EcosystemMenu`) |
 
