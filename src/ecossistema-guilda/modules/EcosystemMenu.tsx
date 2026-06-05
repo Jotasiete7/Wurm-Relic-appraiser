@@ -71,7 +71,7 @@ const ECOSYSTEM_TOOLS: EcosystemTool[] = [
         icon: Map,
     },
     {
-        id: 'chest',
+        id: 'relic-appraiser',
         label: 'Relic Appraiser',
         href: 'https://wurm-relic-appraiser.pages.dev',
         icon: Gem,
