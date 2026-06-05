@@ -84,7 +84,7 @@ export default function App() {
     <LayoutBase>
       {/* Ecosystem Header */}
       <Header 
-        currentToolId="chest"
+        currentToolId="relic-appraiser"
         brandName="A Guilda"
         brandSubName="Relic Appraiser"
         lang={lang}
